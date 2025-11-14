@@ -2,7 +2,7 @@
 
 #### Project name: homelab-notebook
 
-##### Saved in: /Volumes/dev/develop/homelab-notebook
+##### Saved in: /Volumes/dev/develop/homelab-notebook/brainstorm.md
 
 #### **Brainstorming**
 
@@ -10,4 +10,4 @@
 
 **Pain Point:** I have too many resources, too many snippets of “brilliance” that I find, fragments of idea, workflows started they temporarily interrupted and other events and needs take precedence. I need to corral all of this in a manner that will permit easy entry and quick and reliable search and retrieval.
 
-**Goal:** Build a lightweight and streamlined Homelab Notebook app to get thing under reliable and control with the minimum of friction. 
+**Goal:** Build a lightweight and streamlined Homelab Notebook app to get things under reliable control with the minimum of friction. 
