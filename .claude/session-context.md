@@ -1,6 +1,6 @@
 # Session Context: Homelab Notebook
 
-## Current Phase: Ready for Deployment Advisory (Phase 2 of 3)
+## Current Phase: Ready for Project Spinup (Phase 3 of 7)
 
 **Date:** 2025-11-29
 **Mode:** LEARNING (declared in PROJECT-MODE.md)
@@ -10,11 +10,11 @@
 ## What We've Accomplished
 
 ### Phase 0: Project Brief (Complete)
-- Created comprehensive project brief: [Docs/homelab-notebook-brief.md](Docs/homelab-notebook-brief.md)
+- Created comprehensive project brief: [Docs/homelab-notebook-brief.md](../Docs/homelab-notebook-brief.md)
 - Defined three-mode system: Research / Project / Reference
 - Established success criteria: < 30 second capture, 95%+ retrieval reliability
 - Documented learning goals: full-stack development with AI integration
-- Brainstormed initial concepts: [Docs/brainstorm.md](Docs/brainstorm.md)
+- Brainstormed initial concepts: [Docs/brainstorm.md](../Docs/brainstorm.md)
 
 ### Phase 1: Tech Stack Advisory (Complete)
 - Analyzed project requirements against 4 viable tech stacks
@@ -23,17 +23,26 @@
   - Uses self-hosted infrastructure ($0 marginal cost)
   - Caddy for reverse proxy (not Nginx)
   - llama3.2:3b for tagging, nomic-embed-text for embeddings
-- Original analysis preserved: [Docs/tech-stack-decision.md](Docs/tech-stack-decision.md)
-- Streamlined final version: [Docs/tech-stack-decision-final.md](Docs/tech-stack-decision-final.md)
+- Original analysis preserved: [Docs/tech-stack-decision.md](../Docs/tech-stack-decision.md)
+- Streamlined final version: [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md)
 - Checkpoints satisfied through discussion
 
+### Phase 2: Deployment Strategy (Complete)
+- Evaluated 4 deployment options:
+  - **VPS Docker (Recommended)** - $0, zero AI latency, uses existing infrastructure
+  - Fly.io (Not recommended) - $25/month, redundant services, AI latency across networks
+  - Cloudflare Pages hybrid (Not recommended) - Architectural mismatch with Next.js App Router
+  - Localhost (Not recommended) - Defeats deployment learning goals
+- Created deployment strategy handoff: [.docs/deployment-strategy.md](../.docs/deployment-strategy.md)
+- Completed LEARNING mode checkpoint questions
+- **Key Decision:** Deploy to VPS8 as Docker container, domain `notebook.haugaard.dev`
+
 ### This Session (2025-11-29)
-- Reviewed project documents after brief hiatus
-- Discussed n8n and Wiki.js integration possibilities - decided to defer to v2
-- Corrected infrastructure details (Caddy not Nginx, no Redis in v1)
-- Confirmed AI models: llama3.2:3b + nomic-embed-text
-- Created streamlined tech-stack-decision-final.md
-- Created CLAUDE.md project configuration
+- Invoked deployment-advisor skill
+- Evaluated alternatives (Fly.io, Cloudflare Pages, localhost)
+- Confirmed VPS Docker as primary deployment approach
+- Created .docs/deployment-strategy.md handoff document
+- Completed checkpoint questions (3/3)
 - Updated session context
 
 ---
@@ -43,27 +52,25 @@
 1. **Project Mode:** LEARNING (detailed exploration, checkpoints enabled)
 2. **Tech Stack:** Next.js 15 + Supabase + Ollama (CONFIRMED)
 3. **Infrastructure:** VPS8 with Caddy, Supabase, Ollama (all running)
-4. **Cost Target:** $0 marginal cost (use existing infrastructure)
-5. **Scope Control:** n8n and Wiki.js integrations deferred to v2
+4. **Deployment:** VPS Docker with Caddy reverse proxy (CONFIRMED)
+5. **Domain:** notebook.haugaard.dev (planned)
+6. **Cost Target:** $0 marginal cost (use existing infrastructure)
+7. **Scope Control:** n8n and Wiki.js integrations deferred to v2
 
 ---
 
 ## Next Steps
 
-### Immediate (Phase 2)
-- [ ] Invoke deployment-advisor skill
-- [ ] Plan VPS8 deployment architecture
-- [ ] Document deployment workflow
-- [ ] Create deployment handoff document
-
-### Phase 3: Project Foundation (project-spinup skill)
+### Immediate (Phase 3)
 - [ ] Invoke project-spinup skill
-- [ ] Scaffold project structure
-- [ ] Generate learning roadmap
+- [ ] Scaffold project structure (Next.js 15)
+- [ ] Generate Docker configuration
+- [ ] Create learning roadmap
 
 ### Later Phases
-- [ ] test-orchestrator skill
-- [ ] deploy-guide skill
+- [ ] test-orchestrator skill (Phase 4)
+- [ ] deploy-guide skill (Phase 5)
+- [ ] ci-cd-implement skill (Phase 6 - optional)
 
 ---
 
@@ -80,11 +87,16 @@
 | Wiki.js | Running | wikijs.haugaard.dev (v2) |
 | PocketBase | Running | pocketbase.haugaard.dev |
 
+**Planned:**
+| Service | URL |
+|---------|-----|
+| Homelab Notebook | notebook.haugaard.dev |
+
 **AI Models:**
 - llama3.2:3b (~2GB) - Auto-tagging
 - nomic-embed-text (~274MB) - Embeddings (future)
 
-Full infrastructure details: [.claude/homelab-summary.xml](.claude/homelab-summary.xml)
+Full infrastructure details: [.claude/homelab-summary.xml](homelab-summary.xml)
 
 ---
 
@@ -123,9 +135,24 @@ Full infrastructure details: [.claude/homelab-summary.xml](.claude/homelab-summa
 | [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md) | Confirmed tech stack |
 | [Docs/tech-stack-decision.md](../Docs/tech-stack-decision.md) | Original analysis (reference) |
 | [Docs/brainstorm.md](../Docs/brainstorm.md) | Initial ideas |
+| [.docs/deployment-strategy.md](../.docs/deployment-strategy.md) | Deployment plan |
 | [.claude/homelab-summary.xml](homelab-summary.xml) | Infrastructure reference |
 
 ---
 
+## Workflow Progress
+
+| Phase | Skill | Status |
+|-------|-------|--------|
+| 0 | project-brief-writer | ✅ Complete |
+| 1 | tech-stack-advisor | ✅ Complete |
+| 2 | deployment-advisor | ✅ Complete |
+| 3 | **project-spinup** | ⏭️ **Next** |
+| 4 | test-orchestrator | Pending |
+| 5 | deploy-guide | Pending |
+| 6 | ci-cd-implement | Optional |
+
+---
+
 **Last Updated:** 2025-11-29
-**Skills Workflow Progress:** Phase 1 complete, ready for Phase 2 (deployment-advisor)
+**Next Action:** Invoke project-spinup skill to scaffold project foundation
