@@ -1,6 +1,6 @@
 # Session Context: Homelab Notebook
 
-## Current Phase: Ready for Guided Setup Step 1
+## Current Phase: Guided Setup Step 6 (Authentication)
 
 **Date:** 2025-11-29
 **Mode:** LEARNING (Guided Setup approach)
@@ -9,147 +9,182 @@
 
 ## What We've Accomplished
 
-### Phase 0: Project Brief (Complete)
-- Created comprehensive project brief: [Docs/homelab-notebook-brief.md](../Docs/homelab-notebook-brief.md)
-- Defined three-mode system: Research / Project / Reference
-- Established success criteria: < 30 second capture, 95%+ retrieval reliability
-- Documented learning goals: full-stack development with AI integration
+### Phase 0-3: Planning & Foundation (Complete)
+- Created project brief, tech stack decision, deployment strategy
+- Generated CLAUDE.md with 11-step guided setup
+- Created Docker configuration and directory structure
 
-### Phase 1: Tech Stack Advisory (Complete)
-- **Confirmed Stack:** Next.js 15 + Supabase + Ollama
-- Full-stack JavaScript (React + API routes)
-- Uses self-hosted infrastructure ($0 marginal cost)
-- llama3.2:3b for tagging, nomic-embed-text for embeddings
-- Final decision: [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md)
+### Guided Setup Progress (Steps 1-5 Complete)
 
-### Phase 2: Deployment Strategy (Complete)
-- **Deployment Target:** VPS2 (srv993275.hstgr.cloud) - NOT VPS8
-- VPS2 specs: 2 cores, 8GB RAM, 100GB storage
-- Caddy pre-installed via vps-ready skill
-- Remote services on VPS8: Supabase, Ollama (accessed via HTTPS)
-- Domain: notebook.haugaard.dev (DNS configured, gray cloud on Cloudflare)
-- Handoff: [.docs/deployment-strategy.md](../.docs/deployment-strategy.md)
+#### Step 1: Next.js Project Structure ✅
+- Initialized Next.js 15 with React 19, TypeScript, Tailwind CSS
+- Created package.json with all dependencies
+- Set up tsconfig.json with path aliases (`@/*` → `./src/*`)
+- Created next.config.ts with standalone output for Docker
+- Configured Tailwind, PostCSS, ESLint (flat config), Prettier
+- Created root layout.tsx and landing page.tsx
+- Added src/lib/utils.ts with cn() helper
 
-### Phase 3: Project Spinup (Complete)
-- Generated comprehensive CLAUDE.md with 11-step guided setup
-- Created Docker configuration (Dockerfile, docker-compose.yml, docker-compose.prod.yml)
-- Set up directory structure (src/, tests/, docs/, public/)
-- Created .env.example with all environment variables
-- Added Backblaze B2 storage configuration (hybrid storage strategy)
-- Handoff: [.docs/project-foundation-complete.md](../.docs/project-foundation-complete.md)
+#### Step 2: Supabase Client ✅
+- Installed @supabase/supabase-js and @supabase/ssr
+- Created browser client (src/lib/supabase/client.ts)
+- Created server client (src/lib/supabase/server.ts)
+- Created middleware for session refresh (src/middleware.ts)
+- Added TypeScript types placeholder (src/types/database.ts)
 
-### This Session (2025-11-29)
-- Completed project-spinup skill with Guided Setup approach
-- Clarified deployment target: VPS2 (not VPS8)
-- Confirmed HTTPS connections to remote Supabase/Ollama on VPS8
-- Added B2 storage credentials to .env.local
-- Documented hybrid storage strategy (Supabase Storage + B2)
-- Updated .env.example with B2 configuration template
+#### Step 3: Ollama Client ✅
+- Created Ollama client class (src/lib/ollama/client.ts)
+- Created tag generation helper (src/lib/ollama/tags.ts)
+- Added TypeScript types for API responses (src/lib/ollama/types.ts)
+- Includes fallback tag extraction when Ollama unavailable
 
----
+#### Step 4: shadcn/ui Components ✅
+- Initialized shadcn/ui with CLI (new-york style)
+- Added components: Button, Input, Card, Dialog, Textarea
+- Updated globals.css with theme variables (light/dark mode ready)
+- Updated landing page to use shadcn/ui components
 
-## Key Decisions Made
+#### Step 5: Database Schema ✅
+Created 7 migration files in supabase/migrations/:
+- 00001_create_notes_table.sql - Core notes with full-text search
+- 00002_create_tags_tables.sql - Tags + note_tags junction
+- 00003_create_projects_tables.sql - Projects + note_projects junction
+- 00004_create_resources_table.sql - External links/resources
+- 00005_create_files_table.sql - File attachment metadata
+- 00006_create_rls_policies.sql - Row Level Security
+- 00007_create_search_functions.sql - Search functions + pg_trgm
 
-1. **Project Mode:** LEARNING (Guided Setup - 11 incremental steps)
-2. **Tech Stack:** Next.js 15 + Supabase + Ollama (CONFIRMED)
-3. **Deployment Target:** VPS2 (srv993275.hstgr.cloud / 31.97.131.163)
-4. **Remote Services:** Supabase and Ollama on VPS8 (via HTTPS)
-5. **Domain:** notebook.haugaard.dev (configured in Cloudflare, gray cloud)
-6. **File Storage:** Hybrid approach
-   - Supabase Storage for small, frequent files
-   - Backblaze B2 for large files and archival
-7. **Cost Target:** $0 marginal cost (use existing infrastructure)
+Updated src/types/database.ts with complete types matching schema.
 
 ---
 
-## Infrastructure Summary
+## Key Technical Details
 
-### VPS2 (Deployment Target)
-| Attribute | Value |
-|-----------|-------|
-| Hostname | srv993275.hstgr.cloud |
-| IP | 31.97.131.163 |
-| Specs | 2 cores, 8GB RAM, 100GB storage |
-| Reverse Proxy | Caddy (installed, running) |
-| SSH | Key-based auth, user "john" |
+### Database Schema Overview
+```
+users (auth.users)
+  │
+  ├── notes (research/project/reference modes)
+  │     ├── resources (external links)
+  │     ├── files (attachments)
+  │     └── note_tags ←→ tags
+  │
+  └── projects
+        └── note_projects ←→ notes
+```
 
-### Remote Services (VPS8)
-| Service | URL | Purpose |
-|---------|-----|---------|
-| Supabase | https://supabase.haugaard.dev | Database, Auth, Storage |
-| Ollama | https://ollama.haugaard.dev | AI tagging, embeddings |
+### RLS Policies
+All tables have Row Level Security enabled:
+- Users can only SELECT/INSERT/UPDATE/DELETE their own rows
+- Junction tables check parent ownership
+- Prevents data access even with anon key
 
-### Storage
-| Provider | Purpose |
-|----------|---------|
-| Supabase Storage | Small files, frequent access |
-| Backblaze B2 | Large files, archival (bucket: homelab-notebook) |
+### Search Capabilities
+- PostgreSQL full-text search (tsvector + GIN index)
+- pg_trgm for fuzzy matching (typo tolerance)
+- Three RPC functions: search_notes, quick_search_notes, search_tags
+
+---
+
+## Current Project Structure
+
+```
+homelab-notebook/
+├── src/
+│   ├── app/
+│   │   ├── globals.css          # Tailwind + shadcn theme
+│   │   ├── layout.tsx           # Root layout
+│   │   └── page.tsx             # Landing page
+│   ├── components/
+│   │   └── ui/                  # shadcn/ui components
+│   │       ├── button.tsx
+│   │       ├── input.tsx
+│   │       ├── card.tsx
+│   │       ├── dialog.tsx
+│   │       └── textarea.tsx
+│   ├── lib/
+│   │   ├── supabase/
+│   │   │   ├── client.ts        # Browser client
+│   │   │   ├── server.ts        # Server client
+│   │   │   └── middleware.ts    # Session refresh
+│   │   ├── ollama/
+│   │   │   ├── index.ts
+│   │   │   ├── client.ts        # API client
+│   │   │   ├── tags.ts          # Tag generation
+│   │   │   └── types.ts
+│   │   └── utils.ts             # cn() helper
+│   ├── hooks/                   # (empty, ready for custom hooks)
+│   ├── types/
+│   │   ├── database.ts          # Supabase types
+│   │   └── index.ts             # App types
+│   └── middleware.ts            # Next.js middleware entry
+├── supabase/
+│   └── migrations/              # 7 SQL migration files
+├── package.json
+├── tsconfig.json
+├── next.config.ts
+├── tailwind.config.ts
+├── components.json              # shadcn/ui config
+└── ... (Docker, env, etc.)
+```
 
 ---
 
 ## Next Steps
 
-### Immediate: Guided Setup Step 1
-Initialize Next.js 15 project with TypeScript, Tailwind CSS, App Router.
+### Immediate: Step 6 - Authentication
+Implement Supabase Auth with email/password:
+- Login and signup pages
+- Middleware for protected routes
+- Auth utility functions
 
 **Say to Claude Code:**
 ```
-Initialize the Next.js 15 project with TypeScript, Tailwind CSS, and the App Router.
-Set up the basic file structure as specified in CLAUDE.md.
-Please explain the purpose of each major configuration file.
+Implement authentication using Supabase Auth with email/password.
+Create login and signup pages, plus middleware for protected routes.
+Explain how Next.js middleware works for auth protection.
 ```
 
-### Guided Setup Overview (11 Steps)
+### Remaining Guided Setup Steps
 | Step | Topic | Status |
 |------|-------|--------|
-| 1 | Next.js Project Structure | ⏭️ Next |
-| 2 | Supabase Client | Pending |
-| 3 | Ollama Client | Pending |
-| 4 | shadcn/ui Components | Pending |
-| 5 | Database Schema | Pending |
-| 6 | Authentication | Pending |
+| 1 | Next.js Project Structure | ✅ Complete |
+| 2 | Supabase Client | ✅ Complete |
+| 3 | Ollama Client | ✅ Complete |
+| 4 | shadcn/ui Components | ✅ Complete |
+| 5 | Database Schema | ✅ Complete |
+| 6 | Authentication | ⏭️ Next |
 | 7 | Note CRUD + File Uploads | Pending |
 | 8 | Search | Pending |
 | 9 | Three-Mode Interface | Pending |
 | 10 | Testing | Pending |
 | 11 | Production Docker | Pending |
 
-### Later Phases
-- [ ] deploy-guide skill (Phase 5) - when ready to deploy
-- [ ] ci-cd-implement skill (Phase 6) - optional automation
-
 ---
 
-## Project Files
+## Important Notes
 
-| File | Purpose |
-|------|---------|
-| [CLAUDE.md](../CLAUDE.md) | Comprehensive project context + guided setup |
-| [README.md](../README.md) | Project overview and quick start |
-| [.env.example](../.env.example) | Environment variable template |
-| [Dockerfile](../Dockerfile) | Multi-stage Docker build |
-| [docker-compose.yml](../docker-compose.yml) | Local development |
-| [docker-compose.prod.yml](../docker-compose.prod.yml) | VPS2 production |
-| [.docs/project-foundation-complete.md](../.docs/project-foundation-complete.md) | Phase 3 handoff |
-| [.docs/deployment-strategy.md](../.docs/deployment-strategy.md) | Deployment plan |
-| [Docs/homelab-notebook-brief.md](../Docs/homelab-notebook-brief.md) | Project requirements |
-| [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md) | Tech stack decision |
+### Before Running Migrations
+The migration files are created but NOT yet applied. To apply:
+1. Via Supabase Dashboard SQL Editor (paste each file)
+2. Or via CLI: `npx supabase db push`
 
----
+### Dependencies Installed
+- Next.js 15.1.3, React 19.0.0
+- @supabase/supabase-js, @supabase/ssr
+- Tailwind CSS 3.4.17
+- shadcn/ui (new-york style) with Radix primitives
+- class-variance-authority, clsx, tailwind-merge
+- Vitest, Playwright (for testing)
 
-## Workflow Progress
-
-| Phase | Skill | Status |
-|-------|-------|--------|
-| 0 | project-brief-writer | ✅ Complete |
-| 1 | tech-stack-advisor | ✅ Complete |
-| 2 | deployment-advisor | ✅ Complete |
-| 3 | project-spinup | ✅ Complete |
-| 4 | test-orchestrator | Pending (optional) |
-| 5 | deploy-guide | Pending |
-| 6 | ci-cd-implement | Pending (optional) |
+### Environment Variables Needed
+See .env.example - requires:
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+- OLLAMA_BASE_URL
 
 ---
 
 **Last Updated:** 2025-11-29
-**Next Action:** Begin Guided Setup Step 1 - Initialize Next.js Project Structure
+**Next Action:** Step 6 - Implement Authentication

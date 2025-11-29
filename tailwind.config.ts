@@ -14,7 +14,8 @@ import type { Config } from "tailwindcss";
  * - Animation utilities
  */
 const config: Config = {
-  /*
+    darkMode: ["class"],
+    /*
    * Content Paths
    * Tailwind scans these files to find class names.
    * Only classes found in these files are included in the final CSS.
@@ -26,30 +27,71 @@ const config: Config = {
   ],
 
   theme: {
-    extend: {
-      /*
-       * Custom Colors
-       * Define your brand colors here. These can be used like:
-       * bg-brand, text-brand-dark, border-brand-light
-       */
-      colors: {
-        brand: {
-          DEFAULT: "#3b82f6", // blue-500
-          light: "#60a5fa", // blue-400
-          dark: "#2563eb", // blue-600
-        },
-      },
-
-      /*
-       * Font Family
-       * Using system fonts for better performance.
-       * The variable fonts from next/font will be added here in layout.tsx
-       */
-      fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
-      },
-    },
+  	extend: {
+  		colors: {
+  			brand: {
+  				DEFAULT: '#3b82f6',
+  				light: '#60a5fa',
+  				dark: '#2563eb'
+  			},
+  			background: 'hsl(var(--background))',
+  			foreground: 'hsl(var(--foreground))',
+  			card: {
+  				DEFAULT: 'hsl(var(--card))',
+  				foreground: 'hsl(var(--card-foreground))'
+  			},
+  			popover: {
+  				DEFAULT: 'hsl(var(--popover))',
+  				foreground: 'hsl(var(--popover-foreground))'
+  			},
+  			primary: {
+  				DEFAULT: 'hsl(var(--primary))',
+  				foreground: 'hsl(var(--primary-foreground))'
+  			},
+  			secondary: {
+  				DEFAULT: 'hsl(var(--secondary))',
+  				foreground: 'hsl(var(--secondary-foreground))'
+  			},
+  			muted: {
+  				DEFAULT: 'hsl(var(--muted))',
+  				foreground: 'hsl(var(--muted-foreground))'
+  			},
+  			accent: {
+  				DEFAULT: 'hsl(var(--accent))',
+  				foreground: 'hsl(var(--accent-foreground))'
+  			},
+  			destructive: {
+  				DEFAULT: 'hsl(var(--destructive))',
+  				foreground: 'hsl(var(--destructive-foreground))'
+  			},
+  			border: 'hsl(var(--border))',
+  			input: 'hsl(var(--input))',
+  			ring: 'hsl(var(--ring))',
+  			chart: {
+  				'1': 'hsl(var(--chart-1))',
+  				'2': 'hsl(var(--chart-2))',
+  				'3': 'hsl(var(--chart-3))',
+  				'4': 'hsl(var(--chart-4))',
+  				'5': 'hsl(var(--chart-5))'
+  			}
+  		},
+  		fontFamily: {
+  			sans: [
+  				'var(--font-geist-sans)',
+  				'system-ui',
+  				'sans-serif'
+  			],
+  			mono: [
+  				'var(--font-geist-mono)',
+  				'monospace'
+  			]
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		}
+  	}
   },
 
   /*
@@ -59,7 +101,7 @@ const config: Config = {
    * - @tailwindcss/forms (for better form defaults)
    * - tailwindcss-animate (for animations, added with shadcn/ui)
    */
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
 
 export default config;

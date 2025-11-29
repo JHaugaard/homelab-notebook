@@ -3,11 +3,11 @@
  *
  * This file contains:
  * 1. Tailwind CSS directives (base, components, utilities)
- * 2. CSS custom properties for theming
- * 3. Any global styles that can't be done with Tailwind utilities
+ * 2. shadcn/ui CSS custom properties for theming
+ * 3. Custom global styles
  *
  * The @tailwind directives inject Tailwind's styles:
- * - base: CSS reset and element defaults (normalize.css-like)
+ * - base: CSS reset and element defaults
  * - components: Component classes (like .container)
  * - utilities: All utility classes (bg-blue-500, text-center, etc.)
  */
@@ -17,60 +17,126 @@
 @tailwind utilities;
 
 /*
- * CSS Custom Properties (CSS Variables)
+ * shadcn/ui Theme Variables
  *
- * These are defined on :root so they're available globally.
- * Later, when we add shadcn/ui, more variables will be added here
- * for consistent theming across components.
+ * These CSS custom properties define the color palette for shadcn/ui components.
+ * Colors use HSL format without the hsl() wrapper for Tailwind compatibility.
  *
- * The --radius variable is commonly used by shadcn/ui components
- * to ensure consistent border-radius throughout the app.
+ * How theming works:
+ * - Variables defined on :root are the light theme
+ * - Variables defined on .dark are the dark theme
+ * - Toggle dark mode by adding class="dark" to <html>
+ *
+ * Color naming convention:
+ * - --background/--foreground: Page background and text
+ * - --primary: Main action color (buttons, links)
+ * - --secondary: Less prominent actions
+ * - --muted: Subdued backgrounds and text
+ * - --accent: Hover states and highlights
+ * - --destructive: Delete, error states
+ * - --card/--popover: Elevated surface colors
+ * - --border/--input/--ring: Form and focus states
  */
-:root {
-  --radius: 0.5rem;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
 }
 
 /*
- * Base Layer Customizations
+ * Base Layer - Element Defaults
  *
- * @layer base is for default element styles.
- * These apply to bare HTML elements like <body>, <h1>, <p>, etc.
+ * These styles apply to bare HTML elements.
+ * shadcn/ui requires border-border on all elements for consistent borders.
  */
 @layer base {
-  /* Ensure smooth scrolling for anchor links */
+  * {
+    @apply border-border;
+  }
+
   html {
     scroll-behavior: smooth;
   }
 
-  /* Remove default focus outline, add custom one */
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Custom focus styles */
   *:focus {
     outline: none;
   }
 
   *:focus-visible {
-    outline: 2px solid theme("colors.brand.DEFAULT");
-    outline-offset: 2px;
+    @apply ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 
 /*
  * Component Layer
  *
- * @layer components is for reusable component patterns.
- * Use this for styles that combine multiple utilities.
+ * Custom component patterns that combine multiple utilities.
+ * Most components now come from shadcn/ui, but you can add custom ones here.
  */
 @layer components {
-  /* Example: A common button pattern */
-  .btn-primary {
-    @apply rounded-lg bg-brand px-4 py-2 font-medium text-white transition-colors hover:bg-brand-dark focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2;
-  }
+  /* Custom utility for prose/content areas if needed */
 }
 
 /*
  * Utilities Layer
  *
- * @layer utilities is for custom utility classes.
- * These work like Tailwind utilities (single-purpose, composable).
+ * Custom utility classes for specific use cases.
  */
 @layer utilities {
   /* Hide scrollbar but keep functionality */

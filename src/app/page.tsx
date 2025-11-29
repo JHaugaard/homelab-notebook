@@ -1,3 +1,12 @@
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 /*
  * Landing Page Component
  *
@@ -8,24 +17,24 @@
  * - Cannot use React hooks (useState, useEffect)
  * - Cannot use browser APIs (window, document)
  *
- * For now, this is a simple landing page. After adding auth,
- * authenticated users will be redirected to the dashboard.
+ * Now using shadcn/ui components (Button, Card) for consistent styling.
+ * After adding auth, authenticated users will be redirected to the dashboard.
  */
 export default function HomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       {/* Hero Section */}
       <div className="max-w-2xl text-center">
-        <h1 className="mb-4 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+        <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
           Homelab Notebook
         </h1>
 
-        <p className="mb-8 text-lg text-gray-600">
+        <p className="mb-8 text-lg text-muted-foreground">
           AI-enhanced knowledge management with three integrated modes:
           Research, Project, and Reference.
         </p>
 
-        {/* Feature Cards */}
+        {/* Feature Cards - now using shadcn/ui Card component */}
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
           <FeatureCard
             title="Research"
@@ -44,20 +53,17 @@ export default function HomePage() {
           />
         </div>
 
-        {/* CTA Button Placeholder */}
+        {/* CTA Button - now using shadcn/ui Button component */}
         <div className="flex justify-center gap-4">
-          <button
-            className="rounded-lg bg-brand px-6 py-3 font-medium text-white transition-colors hover:bg-brand-dark"
-            disabled
-          >
+          <Button size="lg" disabled>
             Sign In (Coming Soon)
-          </button>
+          </Button>
         </div>
 
         {/* Status Badge */}
-        <p className="mt-8 text-sm text-gray-500">
-          Project initialized with Next.js 15, React 19, TypeScript, and
-          Tailwind CSS
+        <p className="mt-8 text-sm text-muted-foreground">
+          Project initialized with Next.js 15, React 19, TypeScript, Tailwind
+          CSS, and shadcn/ui
         </p>
       </div>
     </main>
@@ -67,9 +73,11 @@ export default function HomePage() {
 /*
  * Feature Card Component
  *
- * A simple presentational component for displaying features.
- * Defined in the same file for simplicity - will be extracted
- * to components/ once we have more shared components.
+ * Now uses shadcn/ui Card components for consistent styling.
+ * The Card component provides:
+ * - Consistent border radius (--radius variable)
+ * - Proper background/foreground colors
+ * - Hover states and focus handling
  */
 function FeatureCard({
   title,
@@ -81,10 +89,14 @@ function FeatureCard({
   icon: string;
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      <span className="mb-2 block text-2xl">{icon}</span>
-      <h2 className="mb-1 font-semibold text-gray-900">{title}</h2>
-      <p className="text-sm text-gray-600">{description}</p>
-    </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <span className="mb-1 block text-2xl">{icon}</span>
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CardDescription>{description}</CardDescription>
+      </CardContent>
+    </Card>
   );
 }
