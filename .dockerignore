@@ -1,0 +1,56 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+out
+build
+dist
+
+# Environment files (will be mounted or set at runtime)
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Documentation (not needed in container)
+Docs
+.docs
+*.md
+!README.md
+
+# Development files
+.eslintcache
+.prettierignore
+*.tsbuildinfo
+
+# Playwright
+playwright-report
+test-results
