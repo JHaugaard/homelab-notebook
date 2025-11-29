@@ -374,6 +374,21 @@ const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
 });
 ```
 
+### File Storage Strategy (Hybrid)
+
+**Supabase Storage** - Small, frequently-accessed files:
+- Screenshots, images attached to notes
+- Small PDFs, code snippets
+- Benefits from Supabase Auth integration (RLS policies)
+
+**Backblaze B2** - Large files and archival:
+- Large PDFs, video tutorials
+- Backup/archival storage
+- Cost-effective for infrequent access
+- Access via S3-compatible API (credentials in .env)
+
+Implementation note: Configure this during Step 7 (Note CRUD with file uploads).
+
 ### Search Implementation
 
 **Phase 1 (v1):** PostgreSQL full-text search

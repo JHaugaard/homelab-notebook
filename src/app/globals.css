@@ -1,0 +1,85 @@
+/*
+ * Global Styles
+ *
+ * This file contains:
+ * 1. Tailwind CSS directives (base, components, utilities)
+ * 2. CSS custom properties for theming
+ * 3. Any global styles that can't be done with Tailwind utilities
+ *
+ * The @tailwind directives inject Tailwind's styles:
+ * - base: CSS reset and element defaults (normalize.css-like)
+ * - components: Component classes (like .container)
+ * - utilities: All utility classes (bg-blue-500, text-center, etc.)
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * CSS Custom Properties (CSS Variables)
+ *
+ * These are defined on :root so they're available globally.
+ * Later, when we add shadcn/ui, more variables will be added here
+ * for consistent theming across components.
+ *
+ * The --radius variable is commonly used by shadcn/ui components
+ * to ensure consistent border-radius throughout the app.
+ */
+:root {
+  --radius: 0.5rem;
+}
+
+/*
+ * Base Layer Customizations
+ *
+ * @layer base is for default element styles.
+ * These apply to bare HTML elements like <body>, <h1>, <p>, etc.
+ */
+@layer base {
+  /* Ensure smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Remove default focus outline, add custom one */
+  *:focus {
+    outline: none;
+  }
+
+  *:focus-visible {
+    outline: 2px solid theme("colors.brand.DEFAULT");
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * Component Layer
+ *
+ * @layer components is for reusable component patterns.
+ * Use this for styles that combine multiple utilities.
+ */
+@layer components {
+  /* Example: A common button pattern */
+  .btn-primary {
+    @apply rounded-lg bg-brand px-4 py-2 font-medium text-white transition-colors hover:bg-brand-dark focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2;
+  }
+}
+
+/*
+ * Utilities Layer
+ *
+ * @layer utilities is for custom utility classes.
+ * These work like Tailwind utilities (single-purpose, composable).
+ */
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -1,9 +1,9 @@
 # Session Context: Homelab Notebook
 
-## Current Phase: Ready for Project Spinup (Phase 3 of 7)
+## Current Phase: Ready for Guided Setup Step 1
 
 **Date:** 2025-11-29
-**Mode:** LEARNING (declared in PROJECT-MODE.md)
+**Mode:** LEARNING (Guided Setup approach)
 
 ---
 
@@ -14,115 +14,109 @@
 - Defined three-mode system: Research / Project / Reference
 - Established success criteria: < 30 second capture, 95%+ retrieval reliability
 - Documented learning goals: full-stack development with AI integration
-- Brainstormed initial concepts: [Docs/brainstorm.md](../Docs/brainstorm.md)
 
 ### Phase 1: Tech Stack Advisory (Complete)
-- Analyzed project requirements against 4 viable tech stacks
 - **Confirmed Stack:** Next.js 15 + Supabase + Ollama
-  - Full-stack JavaScript (React + API routes)
-  - Uses self-hosted infrastructure ($0 marginal cost)
-  - Caddy for reverse proxy (not Nginx)
-  - llama3.2:3b for tagging, nomic-embed-text for embeddings
-- Original analysis preserved: [Docs/tech-stack-decision.md](../Docs/tech-stack-decision.md)
-- Streamlined final version: [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md)
-- Checkpoints satisfied through discussion
+- Full-stack JavaScript (React + API routes)
+- Uses self-hosted infrastructure ($0 marginal cost)
+- llama3.2:3b for tagging, nomic-embed-text for embeddings
+- Final decision: [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md)
 
 ### Phase 2: Deployment Strategy (Complete)
-- Evaluated 4 deployment options:
-  - **VPS Docker (Recommended)** - $0, zero AI latency, uses existing infrastructure
-  - Fly.io (Not recommended) - $25/month, redundant services, AI latency across networks
-  - Cloudflare Pages hybrid (Not recommended) - Architectural mismatch with Next.js App Router
-  - Localhost (Not recommended) - Defeats deployment learning goals
-- Created deployment strategy handoff: [.docs/deployment-strategy.md](../.docs/deployment-strategy.md)
-- Completed LEARNING mode checkpoint questions
-- **Key Decision:** Deploy to VPS8 as Docker container, domain `notebook.haugaard.dev`
+- **Deployment Target:** VPS2 (srv993275.hstgr.cloud) - NOT VPS8
+- VPS2 specs: 2 cores, 8GB RAM, 100GB storage
+- Caddy pre-installed via vps-ready skill
+- Remote services on VPS8: Supabase, Ollama (accessed via HTTPS)
+- Domain: notebook.haugaard.dev (DNS configured, gray cloud on Cloudflare)
+- Handoff: [.docs/deployment-strategy.md](../.docs/deployment-strategy.md)
+
+### Phase 3: Project Spinup (Complete)
+- Generated comprehensive CLAUDE.md with 11-step guided setup
+- Created Docker configuration (Dockerfile, docker-compose.yml, docker-compose.prod.yml)
+- Set up directory structure (src/, tests/, docs/, public/)
+- Created .env.example with all environment variables
+- Added Backblaze B2 storage configuration (hybrid storage strategy)
+- Handoff: [.docs/project-foundation-complete.md](../.docs/project-foundation-complete.md)
 
 ### This Session (2025-11-29)
-- Invoked deployment-advisor skill
-- Evaluated alternatives (Fly.io, Cloudflare Pages, localhost)
-- Confirmed VPS Docker as primary deployment approach
-- Created .docs/deployment-strategy.md handoff document
-- Completed checkpoint questions (3/3)
-- Updated session context
+- Completed project-spinup skill with Guided Setup approach
+- Clarified deployment target: VPS2 (not VPS8)
+- Confirmed HTTPS connections to remote Supabase/Ollama on VPS8
+- Added B2 storage credentials to .env.local
+- Documented hybrid storage strategy (Supabase Storage + B2)
+- Updated .env.example with B2 configuration template
 
 ---
 
 ## Key Decisions Made
 
-1. **Project Mode:** LEARNING (detailed exploration, checkpoints enabled)
+1. **Project Mode:** LEARNING (Guided Setup - 11 incremental steps)
 2. **Tech Stack:** Next.js 15 + Supabase + Ollama (CONFIRMED)
-3. **Infrastructure:** VPS8 with Caddy, Supabase, Ollama (all running)
-4. **Deployment:** VPS Docker with Caddy reverse proxy (CONFIRMED)
-5. **Domain:** notebook.haugaard.dev (planned)
-6. **Cost Target:** $0 marginal cost (use existing infrastructure)
-7. **Scope Control:** n8n and Wiki.js integrations deferred to v2
+3. **Deployment Target:** VPS2 (srv993275.hstgr.cloud / 31.97.131.163)
+4. **Remote Services:** Supabase and Ollama on VPS8 (via HTTPS)
+5. **Domain:** notebook.haugaard.dev (configured in Cloudflare, gray cloud)
+6. **File Storage:** Hybrid approach
+   - Supabase Storage for small, frequent files
+   - Backblaze B2 for large files and archival
+7. **Cost Target:** $0 marginal cost (use existing infrastructure)
+
+---
+
+## Infrastructure Summary
+
+### VPS2 (Deployment Target)
+| Attribute | Value |
+|-----------|-------|
+| Hostname | srv993275.hstgr.cloud |
+| IP | 31.97.131.163 |
+| Specs | 2 cores, 8GB RAM, 100GB storage |
+| Reverse Proxy | Caddy (installed, running) |
+| SSH | Key-based auth, user "john" |
+
+### Remote Services (VPS8)
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Supabase | https://supabase.haugaard.dev | Database, Auth, Storage |
+| Ollama | https://ollama.haugaard.dev | AI tagging, embeddings |
+
+### Storage
+| Provider | Purpose |
+|----------|---------|
+| Supabase Storage | Small files, frequent access |
+| Backblaze B2 | Large files, archival (bucket: homelab-notebook) |
 
 ---
 
 ## Next Steps
 
-### Immediate (Phase 3)
-- [ ] Invoke project-spinup skill
-- [ ] Scaffold project structure (Next.js 15)
-- [ ] Generate Docker configuration
-- [ ] Create learning roadmap
+### Immediate: Guided Setup Step 1
+Initialize Next.js 15 project with TypeScript, Tailwind CSS, App Router.
+
+**Say to Claude Code:**
+```
+Initialize the Next.js 15 project with TypeScript, Tailwind CSS, and the App Router.
+Set up the basic file structure as specified in CLAUDE.md.
+Please explain the purpose of each major configuration file.
+```
+
+### Guided Setup Overview (11 Steps)
+| Step | Topic | Status |
+|------|-------|--------|
+| 1 | Next.js Project Structure | ⏭️ Next |
+| 2 | Supabase Client | Pending |
+| 3 | Ollama Client | Pending |
+| 4 | shadcn/ui Components | Pending |
+| 5 | Database Schema | Pending |
+| 6 | Authentication | Pending |
+| 7 | Note CRUD + File Uploads | Pending |
+| 8 | Search | Pending |
+| 9 | Three-Mode Interface | Pending |
+| 10 | Testing | Pending |
+| 11 | Production Docker | Pending |
 
 ### Later Phases
-- [ ] test-orchestrator skill (Phase 4)
-- [ ] deploy-guide skill (Phase 5)
-- [ ] ci-cd-implement skill (Phase 6 - optional)
-
----
-
-## Infrastructure Reference
-
-**VPS8 (Hostinger KVM 8):** 8 cores, 32GB RAM, 400GB storage
-
-| Service | Status | URL |
-|---------|--------|-----|
-| Caddy | Running | (reverse proxy) |
-| Supabase | Running | supabase.haugaard.dev |
-| Ollama | Running | ollama.haugaard.dev |
-| n8n | Running | n8n.haugaard.dev (v2) |
-| Wiki.js | Running | wikijs.haugaard.dev (v2) |
-| PocketBase | Running | pocketbase.haugaard.dev |
-
-**Planned:**
-| Service | URL |
-|---------|-----|
-| Homelab Notebook | notebook.haugaard.dev |
-
-**AI Models:**
-- llama3.2:3b (~2GB) - Auto-tagging
-- nomic-embed-text (~274MB) - Embeddings (future)
-
-Full infrastructure details: [.claude/homelab-summary.xml](homelab-summary.xml)
-
----
-
-## Important Context for Future Sessions
-
-**Learning Goals:**
-- Full-stack application development (frontend + backend)
-- AI/LLM integration (prompt engineering, auto-tagging)
-- Search system implementation (PostgreSQL full-text search)
-- Self-hosted deployment (VPS, Docker, Caddy, SSL)
-- Professional development practices (testing, git workflow, documentation)
-
-**Project Constraints:**
-- Single-user system (personal knowledge management)
-- Desktop-focused (no mobile optimization for v1)
-- Timeline: Flexible learning pace (weeks to months)
-- Budget: $0 marginal cost (use existing infrastructure)
-
-**Success Criteria:**
-1. Capture friction minimized (< 30 seconds from idea to saved+tagged)
-2. Retrieval reliability high (95%+ find rate on first search)
-3. Single source of truth (replace scattered text files and notebooks)
-
-**Scope Decisions:**
-- v1: Core three-mode system with AI tagging and search
-- Deferred: n8n automation, Wiki.js publishing, Redis caching, semantic search
+- [ ] deploy-guide skill (Phase 5) - when ready to deploy
+- [ ] ci-cd-implement skill (Phase 6) - optional automation
 
 ---
 
@@ -130,13 +124,16 @@ Full infrastructure details: [.claude/homelab-summary.xml](homelab-summary.xml)
 
 | File | Purpose |
 |------|---------|
-| [CLAUDE.md](../CLAUDE.md) | Project configuration |
-| [Docs/homelab-notebook-brief.md](../Docs/homelab-notebook-brief.md) | Project requirements |
-| [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md) | Confirmed tech stack |
-| [Docs/tech-stack-decision.md](../Docs/tech-stack-decision.md) | Original analysis (reference) |
-| [Docs/brainstorm.md](../Docs/brainstorm.md) | Initial ideas |
+| [CLAUDE.md](../CLAUDE.md) | Comprehensive project context + guided setup |
+| [README.md](../README.md) | Project overview and quick start |
+| [.env.example](../.env.example) | Environment variable template |
+| [Dockerfile](../Dockerfile) | Multi-stage Docker build |
+| [docker-compose.yml](../docker-compose.yml) | Local development |
+| [docker-compose.prod.yml](../docker-compose.prod.yml) | VPS2 production |
+| [.docs/project-foundation-complete.md](../.docs/project-foundation-complete.md) | Phase 3 handoff |
 | [.docs/deployment-strategy.md](../.docs/deployment-strategy.md) | Deployment plan |
-| [.claude/homelab-summary.xml](homelab-summary.xml) | Infrastructure reference |
+| [Docs/homelab-notebook-brief.md](../Docs/homelab-notebook-brief.md) | Project requirements |
+| [Docs/tech-stack-decision-final.md](../Docs/tech-stack-decision-final.md) | Tech stack decision |
 
 ---
 
@@ -147,12 +144,12 @@ Full infrastructure details: [.claude/homelab-summary.xml](homelab-summary.xml)
 | 0 | project-brief-writer | ✅ Complete |
 | 1 | tech-stack-advisor | ✅ Complete |
 | 2 | deployment-advisor | ✅ Complete |
-| 3 | **project-spinup** | ⏭️ **Next** |
-| 4 | test-orchestrator | Pending |
+| 3 | project-spinup | ✅ Complete |
+| 4 | test-orchestrator | Pending (optional) |
 | 5 | deploy-guide | Pending |
-| 6 | ci-cd-implement | Optional |
+| 6 | ci-cd-implement | Pending (optional) |
 
 ---
 
 **Last Updated:** 2025-11-29
-**Next Action:** Invoke project-spinup skill to scaffold project foundation
+**Next Action:** Begin Guided Setup Step 1 - Initialize Next.js Project Structure
