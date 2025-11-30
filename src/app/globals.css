@@ -149,3 +149,13 @@
     display: none;
   }
 }
+
+/*
+ * Search Highlight Styles
+ *
+ * PostgreSQL's ts_headline() generates <mark> tags around matching search terms.
+ * These styles ensure the highlights are visible and accessible.
+ */
+.search-headline mark {
+  @apply bg-yellow-200 text-yellow-900 px-0.5 rounded-sm;
+}

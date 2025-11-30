@@ -1,6 +1,6 @@
 # Session Context: Homelab Notebook
 
-## Current Phase: Guided Setup Step 8 (Search)
+## Current Phase: Guided Setup Step 9 (Three-Mode Interface)
 
 **Date:** 2025-11-29
 **Mode:** LEARNING (Guided Setup approach)
@@ -14,7 +14,7 @@
 - Generated CLAUDE.md with 11-step guided setup
 - Created Docker configuration and directory structure
 
-### Guided Setup Progress (Steps 1-7 Complete)
+### Guided Setup Progress (Steps 1-8 Complete)
 
 #### Step 1: Next.js Project Structure ✅
 - Initialized Next.js 15 with React 19, TypeScript, Tailwind CSS
@@ -115,6 +115,31 @@ Implemented complete note management with Server Actions and AI auto-tagging:
 - Why Server Actions are preferred for internal React components
 - Auto-tagging flow with Ollama integration
 
+#### Step 8: Search Implementation ✅
+Implemented full-text search using PostgreSQL tsvector:
+
+**Server Actions (src/lib/search/actions.ts):**
+- `searchNotes()` - Full-text search with filters (mode, project, tags)
+- `quickSearch()` - Fast autocomplete for dropdown
+- `searchTags()` - Fuzzy tag search with pg_trgm
+- `getPopularTags()` - Get frequently used tags
+
+**Components Created (src/components/search/):**
+- `SearchBar` - Client component with debounced input (300ms), keyboard navigation, quick results dropdown
+- `SearchResults` - Displays results with highlighted snippets from ts_headline()
+
+**Updated Files:**
+- `src/app/notes/page.tsx` - Added search bar, conditional rendering for search vs list views
+- `src/app/globals.css` - Added `.search-headline mark` styles for highlighting
+
+**Key Concepts Explained:**
+- TSVECTOR: Text converted to normalized lexemes ("quick brown foxes" → 'brown':3 'fox':4 'quick':2)
+- TSQUERY: Search queries parsed with websearch_to_tsquery (supports: OR, -, quoted phrases)
+- ts_rank(): Scores relevance for ranking results
+- ts_headline(): Generates snippets with <mark> tags for highlighting
+- pg_trgm: Trigram matching for fuzzy search (catches typos)
+- Debouncing: Wait 300ms after typing stops before searching
+
 ---
 
 ## Key Technical Details
@@ -144,6 +169,12 @@ Request → Middleware → getUser() → No user? → Redirect to /login?redirec
 ```
 User saves note → Server Action → Save to DB (immediate) → Call Ollama → Parse tags →
 Normalize & dedupe → Save to tags table → Link via note_tags → Return to user
+```
+
+### Search Flow
+```
+User types → Debounce (300ms) → quickSearch() → Dropdown results
+User presses Enter → Navigate to /notes?q=... → searchNotes() → Full results with highlights
 ```
 
 ### Why getUser() not getSession()?
@@ -183,7 +214,7 @@ All tables have Row Level Security enabled:
 homelab-notebook/
 ├── src/
 │   ├── app/
-│   │   ├── globals.css          # Tailwind + shadcn theme
+│   │   ├── globals.css          # Tailwind + shadcn theme + search highlights
 │   │   ├── layout.tsx           # Root layout
 │   │   ├── page.tsx             # Landing page
 │   │   ├── login/
@@ -196,7 +227,7 @@ homelab-notebook/
 │   │   ├── dashboard/
 │   │   │   └── page.tsx         # Protected dashboard with recent notes
 │   │   └── notes/
-│   │       ├── page.tsx         # Notes list with filtering
+│   │       ├── page.tsx         # Notes list with search and filtering
 │   │       ├── new/
 │   │       │   └── page.tsx     # New note page
 │   │       └── [id]/
@@ -209,6 +240,10 @@ homelab-notebook/
 │   │   │   ├── index.ts         # Barrel exports
 │   │   │   ├── note-list.tsx    # Note list component
 │   │   │   └── note-editor.tsx  # Note create/edit form
+│   │   ├── search/
+│   │   │   ├── index.ts         # Barrel exports
+│   │   │   ├── search-bar.tsx   # Debounced search input with dropdown
+│   │   │   └── search-results.tsx # Results with highlighted snippets
 │   │   └── ui/                  # shadcn/ui components
 │   │       ├── button.tsx
 │   │       ├── input.tsx
@@ -220,6 +255,8 @@ homelab-notebook/
 │   │   │   └── actions.ts       # signIn, signUp, signOut, getUser
 │   │   ├── notes/
 │   │   │   └── actions.ts       # CRUD + tag operations
+│   │   ├── search/
+│   │   │   └── actions.ts       # searchNotes, quickSearch, searchTags
 │   │   ├── supabase/
 │   │   │   ├── client.ts        # Browser client
 │   │   │   ├── server.ts        # Server client
@@ -249,17 +286,17 @@ homelab-notebook/
 
 ## Next Steps
 
-### Immediate: Step 8 - Search Implementation
-Implement full-text search across notes:
-- Search component with debounced input
-- Use PostgreSQL tsvector (already set up in schema)
-- Results display with highlighting
+### Immediate: Step 9 - Three-Mode Interface
+Implement the three-mode interface: Research, Project, Reference.
+- Create mode-specific pages and navigation
+- Share layouts while having distinct modes
+- Cross-mode navigation
 
 **Say to Claude Code:**
 ```
-Implement full-text search across notes using PostgreSQL tsvector.
-Create a search component with results display.
-Explain how PostgreSQL full-text search works.
+Implement the three-mode interface: Research, Project, Reference.
+Create mode-specific pages and navigation.
+Explain how to share layouts while having distinct modes.
 ```
 
 ### Remaining Guided Setup Steps
@@ -272,8 +309,8 @@ Explain how PostgreSQL full-text search works.
 | 5 | Database Schema | ✅ Complete |
 | 6 | Authentication | ✅ Complete |
 | 7 | Note CRUD + Auto-Tagging | ✅ Complete |
-| 8 | Search | ⏭️ Next |
-| 9 | Three-Mode Interface | Pending |
+| 8 | Search | ✅ Complete |
+| 9 | Three-Mode Interface | ⏭️ Next |
 | 10 | Testing | Pending |
 | 11 | Production Docker | Pending |
 
@@ -281,10 +318,24 @@ Explain how PostgreSQL full-text search works.
 
 ## Important Notes
 
-### Before Running Migrations
-The migration files are created but NOT yet applied. To apply:
-1. Via Supabase Dashboard SQL Editor (paste each file)
-2. Or via CLI: `npx supabase db push`
+### ⚠️ Required Migration for Search
+Before testing search, ensure migration `00007_create_search_functions.sql` is applied:
+
+```sql
+-- This migration creates:
+-- 1. pg_trgm extension (for fuzzy matching)
+-- 2. search_notes() function (full-text search with filters)
+-- 3. quick_search_notes() function (fast autocomplete)
+-- 4. search_tags() function (fuzzy tag search)
+-- 5. Trigram indexes on notes.title and tags.normalized_name
+```
+
+To apply via Supabase Dashboard:
+1. Go to SQL Editor
+2. Paste contents of `supabase/migrations/00007_create_search_functions.sql`
+3. Run the query
+
+Or via CLI: `npx supabase db push`
 
 ### Dependencies Installed
 - Next.js 15.1.3, React 19.0.0
@@ -303,22 +354,26 @@ See .env.example - requires:
 - OLLAMA_BASE_URL
 - NEXT_PUBLIC_APP_URL (used for email confirmation redirects)
 
-### Testing Notes CRUD
-To verify notes work:
-1. Run `pnpm dev`
-2. Log in at `/login`
-3. Visit `/notes` → Should show empty state
-4. Click "New Note" → Create a note
-5. Note should appear in list with AI-generated tags
-6. Click note to edit, add/remove tags
-7. Delete note and verify it's removed
+### Testing Search
+To verify search works:
+1. Ensure migration 00007 is applied
+2. Run `pnpm dev`
+3. Log in at `/login`
+4. Create a few notes with content
+5. Visit `/notes` → Use search bar
+6. Quick results should appear in dropdown
+7. Press Enter to see full search results with highlights
 
 ### TypedRoutes Workaround
 Next.js's experimental `typedRoutes` feature requires static href values.
-For dynamic routes like `/notes/[id]`, we use `<a>` tags or `window.location`
-instead of Next.js `<Link>` to bypass the type checker.
+For dynamic routes, we cast to `Route<string>` type:
+```typescript
+const buildHref = (mode?: NoteMode): Route<string> => {
+  return `/notes?mode=${mode}` as Route<string>;
+};
+```
 
 ---
 
 **Last Updated:** 2025-11-29
-**Next Action:** Step 8 - Search Implementation
+**Next Action:** Step 9 - Three-Mode Interface
