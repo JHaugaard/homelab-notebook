@@ -1,0 +1,61 @@
+# Session Context - Homelab Notebook
+
+**Last Updated:** 2025-11-30
+**Session Purpose:** Project planning workflow using Skills chain
+
+---
+
+## Workflow Progress
+
+| Phase | Status | Handoff Document |
+|-------|--------|------------------|
+| Phase 0: Project Brief | COMPLETE | .docs/brief-homelab-notebook.md |
+| Phase 0: Mode Declaration | COMPLETE | .docs/PROJECT-MODE.md |
+| Phase 1: Tech Stack | COMPLETE | .docs/tech-stack-decision.md |
+| Phase 2: Deployment | COMPLETE | .docs/deployment-strategy.md |
+| Phase 3: Project Spinup | PENDING | - |
+
+**Mode:** DELIVERY (practical utility focus)
+**Model Used:** gemini-3-pro-preview (via Zen MCP)
+
+---
+
+## Key Decisions
+
+### Project
+- **Name:** Homelab Notebook
+- **Goal:** Capture/retrieve technical knowledge in under 5 seconds
+- **Type:** Lightweight PKM (Personal Knowledge Management)
+- **User:** Single user, personal use
+
+### Tech Stack (The "Hyper-Light" Stack)
+- **Frontend:** SvelteKit
+- **Backend/DB:** PocketBase (Go binary, embedded SQLite)
+- **Styling:** Tailwind CSS
+- **Search:** FlexSearch.js (client-side, zero-latency)
+- **Editor:** CodeMirror 6
+- **Icons:** Lucide Svelte
+
+### Deployment
+- **Target:** VPS/Docker on existing Hostinger VPS8
+- **Domain:** notebook.haugaard.dev
+- **Network:** homelab-net (same as existing PocketBase)
+- **SSL:** Caddy (automatic Let's Encrypt)
+- **Cost:** $0/month (existing infrastructure)
+
+---
+
+## Next Action
+
+Invoke **project-spinup** skill to scaffold the project foundation.
+
+---
+
+## Reference Files
+
+- docs/brainstorm.md - Original project idea
+- docs/homelab-summary.xml - Infrastructure details
+- .docs/brief-homelab-notebook.md - Project brief
+- .docs/PROJECT-MODE.md - Workflow mode (DELIVERY)
+- .docs/tech-stack-decision.md - Tech stack rationale
+- .docs/deployment-strategy.md - Deployment plan
