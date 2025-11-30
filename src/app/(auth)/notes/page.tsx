@@ -1,8 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { getUser } from "@/lib/auth/actions";
 import { listNotes } from "@/lib/notes/actions";
 import { searchNotes } from "@/lib/search/actions";
 import { NoteList } from "@/components/notes";
@@ -17,14 +15,10 @@ import type { NoteMode } from "@/types/database";
  * 1. Default view: Shows all notes (optionally filtered by mode)
  * 2. Search view: Shows search results when ?q= param is present
  *
+ * Auth protection is handled by the (auth) layout wrapper.
+ *
  * The SearchBar is a Client Component wrapped in Suspense because it
  * uses useSearchParams(), which requires client-side JavaScript.
- *
- * Why Suspense?
- * - useSearchParams() causes the component to opt into client-side rendering
- * - Without Suspense, Next.js would make the entire page client-side
- * - With Suspense, only the SearchBar hydrates on the client
- * - The rest of the page stays as a fast Server Component
  */
 
 interface NotesPageProps {
@@ -32,12 +26,6 @@ interface NotesPageProps {
 }
 
 export default async function NotesPage({ searchParams }: NotesPageProps) {
-  // Check authentication
-  const user = await getUser();
-  if (!user) {
-    redirect("/login");
-  }
-
   // Await searchParams (Next.js 15 requirement)
   const params = await searchParams;
   const searchQuery = params.q?.trim();
@@ -79,85 +67,55 @@ export default async function NotesPage({ searchParams }: NotesPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <NotesHeader user={user} />
-
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        {/* Page Header with Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notes</h1>
-            {isSearching ? (
-              <p className="text-sm text-gray-500 mt-1">
-                Search results for &ldquo;{searchQuery}&rdquo;
-                {params.mode ? ` in ${params.mode} mode` : ""}
-              </p>
-            ) : (
-              <p className="text-sm text-gray-500 mt-1">
-                {params.mode ? `Showing ${params.mode} notes` : "All notes"}
-              </p>
-            )}
-          </div>
-          <Link href="/notes/new">
-            <Button>
-              <PlusIcon />
-              New Note
-            </Button>
-          </Link>
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      {/* Page Header with Search */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">All Notes</h1>
+          {isSearching ? (
+            <p className="text-sm text-gray-500 mt-1">
+              Search results for &ldquo;{searchQuery}&rdquo;
+              {params.mode ? ` in ${params.mode} mode` : ""}
+            </p>
+          ) : (
+            <p className="text-sm text-gray-500 mt-1">
+              {params.mode ? `Showing ${params.mode} notes` : "Showing all notes across modes"}
+            </p>
+          )}
         </div>
-
-        {/* Search Bar */}
-        <div className="mb-6">
-          <Suspense fallback={<SearchBarFallback />}>
-            <SearchBar className="max-w-md" />
-          </Suspense>
-        </div>
-
-        {/* Mode Filter Tabs */}
-        <ModeFilterTabs currentMode={params.mode} searchQuery={searchQuery} />
-
-        {/* Notes List or Search Results */}
-        <div className="mt-6">{content}</div>
-
-        {/* Clear Search Link (when searching) */}
-        {isSearching && (
-          <div className="mt-4 text-center">
-            <Link
-              href={params.mode ? `/notes?mode=${params.mode}` : "/notes"}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Clear search and show all notes
-            </Link>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
-/*
- * Header Component
- */
-function NotesHeader({ user }: { user: { email?: string } }) {
-  return (
-    <header className="border-b bg-white shadow-sm">
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="text-xl font-semibold text-gray-900 hover:text-blue-600"
-          >
-            Homelab Notebook
-          </Link>
-          <nav className="flex items-center gap-2 text-sm">
-            <Link href="/notes" className="text-gray-600 hover:text-gray-900">
-              Notes
-            </Link>
-          </nav>
-        </div>
-        <span className="text-sm text-gray-600">{user.email}</span>
+        <Link href="/notes/new">
+          <Button>
+            <PlusIcon />
+            New Note
+          </Button>
+        </Link>
       </div>
-    </header>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <Suspense fallback={<SearchBarFallback />}>
+          <SearchBar className="max-w-md" />
+        </Suspense>
+      </div>
+
+      {/* Mode Filter Tabs */}
+      <ModeFilterTabs currentMode={params.mode} searchQuery={searchQuery} />
+
+      {/* Notes List or Search Results */}
+      <div className="mt-6">{content}</div>
+
+      {/* Clear Search Link (when searching) */}
+      {isSearching && (
+        <div className="mt-4 text-center">
+          <Link
+            href={params.mode ? `/notes?mode=${params.mode}` : "/notes"}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            Clear search and show all notes
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -181,7 +139,6 @@ function ModeFilterTabs({
     }`;
 
   // Build href that preserves search query
-  // Cast to Route<string> for typed routes compatibility
   const buildHref = (mode?: NoteMode): Route<string> => {
     const params = new URLSearchParams();
     if (mode) params.set("mode", mode);

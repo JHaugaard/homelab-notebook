@@ -34,16 +34,17 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface NoteEditorProps {
   note?: NoteWithTags; // Existing note for editing, undefined for new note
+  defaultMode?: NoteMode; // Pre-select mode for new notes (defaults to "project")
   onSave?: (note: NoteWithTags) => void;
   onCancel?: () => void;
 }
 
-export function NoteEditor({ note, onSave, onCancel }: NoteEditorProps) {
+export function NoteEditor({ note, defaultMode, onSave, onCancel }: NoteEditorProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  // Form state
-  const [mode, setMode] = useState<NoteMode>(note?.mode || "project");
+  // Form state - use note's mode if editing, otherwise use defaultMode or fallback to "project"
+  const [mode, setMode] = useState<NoteMode>(note?.mode || defaultMode || "project");
   const [tags, setTags] = useState(note?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [autoTag, setAutoTag] = useState(true);
