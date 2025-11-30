@@ -3,6 +3,31 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
 /*
+ * Route Configuration
+ *
+ * Define which routes require authentication and which are public.
+ * This centralized configuration makes it easy to manage access control.
+ */
+
+// Routes that require authentication
+const PROTECTED_ROUTES = [
+  "/dashboard",
+  "/research",
+  "/project",
+  "/reference",
+  "/notes",
+  "/settings",
+];
+
+// Routes that should redirect to dashboard if already authenticated
+const AUTH_ROUTES = ["/login", "/signup"];
+
+// Routes that are always public (no redirect logic)
+// Note: These are implicitly public - any route not in PROTECTED_ROUTES or AUTH_ROUTES
+// is allowed without authentication. This list is kept for documentation purposes.
+const _PUBLIC_ROUTES = ["/", "/auth/callback"];
+
+/*
  * Supabase Middleware Client
  *
  * This creates a Supabase client specifically for use in Next.js middleware.
@@ -66,22 +91,53 @@ export async function updateSession(request: NextRequest) {
    *
    * This call also triggers session refresh if tokens are expired
    */
-  // Refresh the session - this triggers token refresh if needed
-  // We intentionally ignore the result for now; route protection comes in Step 6
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
 
   /*
-   * Protected Routes Logic (Step 6)
+   * Route Protection Logic
    *
-   * When implementing auth, you'll add logic like:
+   * This implements a simple but effective auth flow:
    *
-   * const { data: { user } } = await supabase.auth.getUser();
-   * const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
+   * 1. Protected Routes (/dashboard, /notes, etc.)
+   *    - If not logged in → redirect to /login
+   *    - If logged in → allow access
    *
-   * if (isProtectedRoute && !user) {
-   *   return NextResponse.redirect(new URL("/login", request.url));
-   * }
+   * 2. Auth Routes (/login, /signup)
+   *    - If logged in → redirect to /dashboard (already authenticated)
+   *    - If not logged in → allow access (let them authenticate)
+   *
+   * 3. Public Routes (/, /auth/callback)
+   *    - Always allow access regardless of auth state
+   *
+   * Why check routes this way?
+   * - Using startsWith() allows for nested routes (e.g., /dashboard/settings)
+   * - The order matters: check protected first, then auth, then allow all else
    */
+
+  // Check if this is a protected route
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
+
+  // Check if this is an auth route (login/signup)
+  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+
+  // Redirect unauthenticated users away from protected routes
+  if (isProtectedRoute && !user) {
+    const loginUrl = new URL("/login", request.url);
+    // Preserve the original URL so we can redirect back after login
+    loginUrl.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Redirect authenticated users away from auth pages
+  if (isAuthRoute && user) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
 
   return supabaseResponse;
 }
