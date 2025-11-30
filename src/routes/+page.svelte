@@ -1,98 +1,162 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { Plus, Loader2, FileText } from 'lucide-svelte';
-	import { Sidebar, SearchBar, NoteCard } from '$components/features';
-	import { Button, Modal } from '$components/ui';
-	import { filteredNotes, ui, initializeStores, currentUser } from '$stores';
-	import { browser } from '$app/environment';
+	import { BookOpen, Wrench, FileText, Plus, Clock, ArrowRight, Search, Keyboard } from 'lucide-svelte';
+	import { Header } from '$lib/components/layout';
+	import { Button } from '$lib/components/ui';
+	import { entryCounts, recentEntries, activeProjects, showQuickCapture, showGlobalSearch, tags } from '$lib/stores';
+	import { MODE_CONFIGS, STATUS_CONFIGS } from '$lib/types';
+	import { formatRelativeTime } from '$lib/utils';
 
-	let loading = $state(true);
+	const modeIcons = {
+		research: BookOpen,
+		project: Wrench,
+		reference: FileText
+	};
 
-	onMount(async () => {
-		if (browser) {
-			await initializeStores();
-			loading = false;
-		}
-	});
+	// Calculate total entries
+	let totalEntries = $derived(
+		$entryCounts.research + $entryCounts.project + $entryCounts.reference
+	);
 </script>
 
-<div class="flex h-screen bg-[var(--color-background)]">
-	<!-- Sidebar -->
-	<Sidebar />
+<svelte:head>
+	<title>Dashboard | Homelab Notebook</title>
+</svelte:head>
 
-	<!-- Main Content -->
-	<main class="flex-1 flex flex-col overflow-hidden">
-		<!-- Header -->
-		<header
-			class="flex items-center gap-4 px-8 py-3 border-b border-[var(--color-border)] bg-[var(--color-background)]"
-		>
-			<div class="flex-1 max-w-md">
-				<SearchBar />
+<Header title="Dashboard" subtitle="Your knowledge at a glance">
+	{#snippet actions()}
+		<Button variant="primary" onclick={() => ($showQuickCapture = true)}>
+			<Plus class="w-4 h-4" />
+			New Entry
+		</Button>
+	{/snippet}
+</Header>
+
+<div class="flex-1 overflow-y-auto p-6">
+	<!-- Quick Actions Bar -->
+	<section class="mb-8">
+		<div class="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-[var(--color-surface-hover)]">
+			<div class="flex-1">
+				<p class="text-sm text-[var(--color-text-muted)]">
+					<span class="font-medium text-[var(--color-text)]">{totalEntries}</span> total entries across {$activeProjects.length} projects with {$tags.length} tags
+				</p>
 			</div>
-			<Button onclick={() => ui.openModal('note')}>
-				<Plus class="w-4 h-4" />
-				New Entry
-			</Button>
-		</header>
+			<div class="flex items-center gap-2">
+				<button
+					onclick={() => ($showGlobalSearch = true)}
+					class="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--color-text-muted)] bg-[var(--color-surface)] rounded-md border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors"
+				>
+					<Search class="w-4 h-4" />
+					<span>Search</span>
+					<kbd class="ml-2 px-1.5 py-0.5 text-xs bg-[var(--color-background)] rounded">⌘K</kbd>
+				</button>
+				<Button variant="primary" onclick={() => ($showQuickCapture = true)}>
+					<Plus class="w-4 h-4" />
+					<span class="hidden sm:inline">New</span>
+					<kbd class="ml-1 px-1.5 py-0.5 text-xs bg-[var(--color-primary-dark)] rounded hidden sm:inline">⌘N</kbd>
+				</Button>
+			</div>
+		</div>
+	</section>
 
-		<!-- Content -->
-		<div class="flex-1 overflow-y-auto">
-			<div class="max-w-3xl mx-auto px-8 py-8">
-				{#if loading}
-					<div class="flex items-center justify-center h-64">
-						<Loader2 class="w-5 h-5 text-[var(--color-text-muted)] animate-spin" />
+	<!-- Mode Stats -->
+	<section class="mb-8">
+		<h2 class="text-lg font-semibold text-[var(--color-text)] mb-4">Overview</h2>
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+			{#each Object.values(MODE_CONFIGS) as mode}
+				{@const Icon = modeIcons[mode.id]}
+				{@const count = $entryCounts[mode.id]}
+				<a
+					href="/{mode.id}"
+					class="flex items-center gap-4 p-4 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:shadow-sm transition-all no-underline group"
+				>
+					<div class="p-3 rounded-lg {mode.bgColor}">
+						<Icon class="w-6 h-6 {mode.color}" />
 					</div>
-				{:else if $filteredNotes.length === 0}
-					<div class="flex flex-col items-center justify-center h-64 text-center">
-						<div
-							class="w-12 h-12 flex items-center justify-center bg-[var(--color-surface-hover)] rounded-full mb-4"
+					<div class="flex-1">
+						<h3 class="font-medium text-[var(--color-text)]">{mode.label}</h3>
+						<p class="text-2xl font-semibold text-[var(--color-text)] tabular-nums">{count}</p>
+					</div>
+					<ArrowRight class="w-5 h-5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+				</a>
+			{/each}
+		</div>
+	</section>
+
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+		<!-- Recent Entries -->
+		<section>
+			<div class="flex items-center justify-between mb-4">
+				<h2 class="text-lg font-semibold text-[var(--color-text)]">Recent Entries</h2>
+				<a href="/recent" class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+					View all
+				</a>
+			</div>
+			<div class="space-y-2">
+				{#each $recentEntries.slice(0, 5) as entry}
+					{@const Icon = modeIcons[entry.mode]}
+					{@const config = MODE_CONFIGS[entry.mode]}
+					<a
+						href="/{entry.mode}/{entry.id}"
+						class="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-all no-underline"
+					>
+						<Icon class="w-4 h-4 {config.color}" />
+						<span class="flex-1 truncate text-sm text-[var(--color-text)]">{entry.title}</span>
+						<span class="text-xs text-[var(--color-text-muted)]">
+							{formatRelativeTime(entry.created)}
+						</span>
+					</a>
+				{:else}
+					<div class="p-8 text-center border border-dashed border-[var(--color-border)] rounded-lg">
+						<Clock class="w-8 h-8 mx-auto mb-2 text-[var(--color-text-muted)]" />
+						<p class="text-sm text-[var(--color-text-muted)]">No entries yet</p>
+						<Button
+							variant="ghost"
+							size="sm"
+							class="mt-2"
+							onclick={() => ($showQuickCapture = true)}
 						>
-							<FileText class="w-6 h-6 text-[var(--color-text-muted)]" />
-						</div>
-						<h2 class="font-serif text-xl font-semibold text-[var(--color-text)] mb-2">
-							No notes yet
-						</h2>
-						<p class="text-[var(--color-text-muted)] mb-6 max-w-sm">
-							Start by adding a URL, code snippet, or note to your collection.
-						</p>
-						<Button onclick={() => ui.openModal('note')}>
-							<Plus class="w-4 h-4" />
 							Create your first entry
 						</Button>
 					</div>
-				{:else}
-					<div class="space-y-1">
-						{#each $filteredNotes as note (note.id)}
-							<NoteCard {note} onclick={() => ui.openModal('note', note.id)} />
-						{/each}
-					</div>
-				{/if}
+				{/each}
 			</div>
-		</div>
-	</main>
+		</section>
+
+		<!-- Active Projects -->
+		<section>
+			<div class="flex items-center justify-between mb-4">
+				<h2 class="text-lg font-semibold text-[var(--color-text)]">Active Projects</h2>
+				<a href="/projects" class="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+					View all
+				</a>
+			</div>
+			<div class="space-y-2">
+				{#each $activeProjects.slice(0, 5) as project}
+					{@const status = STATUS_CONFIGS[project.status]}
+					<a
+						href="/projects/{project.id}"
+						class="flex items-center gap-3 p-3 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-all no-underline"
+					>
+						<span class="w-2 h-2 rounded-full {status.dotColor}"></span>
+						<span class="flex-1 truncate text-sm text-[var(--color-text)]">{project.name}</span>
+						<span class="text-xs text-[var(--color-text-muted)]">
+							{formatRelativeTime(project.updated)}
+						</span>
+					</a>
+				{:else}
+					<div class="p-8 text-center border border-dashed border-[var(--color-border)] rounded-lg">
+						<Wrench class="w-8 h-8 mx-auto mb-2 text-[var(--color-text-muted)]" />
+						<p class="text-sm text-[var(--color-text-muted)]">No active projects</p>
+						<a
+							href="/projects/new"
+							class="inline-flex items-center gap-1 mt-2 text-sm text-[var(--color-primary)] hover:underline"
+						>
+							<Plus class="w-4 h-4" />
+							Create a project
+						</a>
+					</div>
+				{/each}
+			</div>
+		</section>
+	</div>
 </div>
-
-<!-- Modals -->
-<Modal
-	open={$ui.modalOpen && $ui.modalType === 'note'}
-	title={$ui.editingId ? 'Edit Entry' : 'New Entry'}
-	onclose={() => ui.closeModal()}
->
-	<p class="text-[var(--color-text-muted)]">Note form will be implemented here.</p>
-</Modal>
-
-<Modal
-	open={$ui.modalOpen && $ui.modalType === 'tag'}
-	title="New Tag"
-	onclose={() => ui.closeModal()}
->
-	<p class="text-[var(--color-text-muted)]">Tag form will be implemented here.</p>
-</Modal>
-
-<Modal
-	open={$ui.modalOpen && $ui.modalType === 'collection'}
-	title="New Collection"
-	onclose={() => ui.closeModal()}
->
-	<p class="text-[var(--color-text-muted)]">Collection form will be implemented here.</p>
-</Modal>

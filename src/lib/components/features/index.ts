@@ -1,3 +1,4 @@
-export { default as SearchBar } from './SearchBar.svelte';
-export { default as NoteCard } from './NoteCard.svelte';
-export { default as Sidebar } from './Sidebar.svelte';
+export { default as QuickCaptureModal } from './QuickCaptureModal.svelte';
+export { default as NewProjectModal } from './NewProjectModal.svelte';
+export { default as PromoteEntryModal } from './PromoteEntryModal.svelte';
+export { default as LinkEntriesModal } from './LinkEntriesModal.svelte';

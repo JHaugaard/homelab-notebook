@@ -1,6 +1,6 @@
 # Homelab Notebook
 
-> A lightweight personal knowledge management app for organizing homelab resources, code snippets, project ideas, and learning materials.
+> A three-mode knowledge management system for capturing, organizing, and retrieving technical knowledge during active learning and project work.
 
 **Status**: Active Development | **Developer**: John | **Philosophy**: Delivery-Focused, Best Practices
 
@@ -18,13 +18,18 @@
 ## Project Overview
 
 ### What It Does
-Homelab Notebook is a high-speed digital filing cabinet for technical knowledge. Users can instantly "dump" information (URLs, code snippets, markdown notes) and rely on powerful search and flexible tagging to retrieve it later.
+Homelab Notebook is a unified knowledge repository organized around three integrated modes:
 
-### Core Features
-- **Quick Capture**: < 5 seconds from opening app to saving entry
-- **Flexible Organization**: Tags and collections without rigid hierarchy
-- **Instant Search**: Client-side fuzzy search with FlexSearch.js
-- **Content Types**: URLs (auto-fetch metadata), code snippets (syntax highlighting), markdown notes
+- **Research Mode**: Capture and organize external resources (links, articles, documentation) encountered during learning
+- **Project Mode**: Developer journal with timestamped log entries during active project work
+- **Reference Mode**: Distilled, tutorial-style documentation that anyone can follow
+
+### Core Concepts
+- **Mode-first navigation**: Entries belong to a primary mode (Research/Project/Reference)
+- **Mode promotion**: Entries can be promoted (Research → Project → Reference) or cross-graded
+- **Projects as optional organizers**: Entries can exist independently or be associated with a project
+- **Timeline-based Project mode**: Discrete, timestamped entries like a developer journal
+- **AI-ready architecture**: Clear extension points for future auto-tagging and content enhancement
 
 ### Tech Stack
 
@@ -38,9 +43,10 @@ Homelab Notebook is a high-speed digital filing cabinet for technical knowledge.
 | Icons | **Lucide Svelte** | Lightweight, consistent icon set |
 
 ### Architecture Decisions
-- **Client-side search**: All note metadata loaded on startup, indexed with FlexSearch for 0ms search latency
+- **Client-side search**: All entry metadata loaded on startup, indexed with FlexSearch for 0ms search latency
 - **Single-user**: No complex auth; simple PocketBase auth for access control
 - **Docker-first**: Both dev and prod run in containers for consistency
+- **Mode-aware UI**: Each mode has tailored views (cards for Research, timeline for Project, documents for Reference)
 
 ---
 
@@ -93,7 +99,7 @@ Open http://localhost:5173 to see the app.
 | Supabase | supabase.haugaard.dev | PostgreSQL, Auth (not used for this project) |
 | PocketBase | pocketbase.haugaard.dev | Backend for this project |
 | n8n | n8n.haugaard.dev | Workflow automation |
-| Ollama | ollama.haugaard.dev | Local LLM inference |
+| Ollama | ollama.haugaard.dev | Local LLM inference (future AI features) |
 
 ### Project-Specific Hosting
 - **Production URL**: notebook.haugaard.dev
@@ -140,26 +146,35 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 src/
 ├── lib/
 │   ├── components/
-│   │   ├── ui/          # Generic UI components (Button, Input, Modal)
-│   │   └── features/    # Feature-specific components (NoteCard, SearchBar)
-│   ├── stores/          # Svelte stores (notes, search, ui)
-│   ├── utils/           # Helper functions
-│   ├── types/           # TypeScript types
-│   └── server/          # Server-only code (PocketBase admin)
+│   │   ├── layout/       # AppShell, Sidebar, Header
+│   │   ├── nav/          # ModeNav, ProjectList, GlobalSearch
+│   │   ├── entries/      # EntryCard, EntryForm, TimelineEntry
+│   │   ├── editor/       # MarkdownEditor, CodeEditor
+│   │   ├── ui/           # Button, Input, Modal, Badge, TagInput
+│   │   └── features/     # ProjectCard, PromoteModal, QuickCaptureModal
+│   ├── stores/           # Svelte stores (entries, projects, tags, search, ui)
+│   ├── services/         # PocketBase client, AI hooks (future)
+│   ├── utils/            # Helper functions
+│   └── types/            # TypeScript types
 ├── routes/
-│   ├── (app)/           # App routes (protected)
-│   └── api/             # API routes if needed
+│   ├── +layout.svelte    # App shell with sidebar
+│   ├── +page.svelte      # Dashboard
+│   ├── research/         # Research mode routes
+│   ├── project/          # Project mode routes
+│   ├── reference/        # Reference mode routes
+│   ├── projects/         # Project management routes
+│   ├── tags/             # Tag management
+│   └── settings/         # User preferences
 tests/
-docs/
 static/
 ```
 
 ### Naming Conventions
-- Components: PascalCase (`NoteCard.svelte`)
-- Files: kebab-case (`note-utils.ts`)
+- Components: PascalCase (`EntryCard.svelte`)
+- Files: kebab-case (`entry-utils.ts`)
 - Functions: camelCase (`formatDate()`)
 - Constants: SCREAMING_SNAKE_CASE (`MAX_TITLE_LENGTH`)
-- Types: PascalCase (`NoteEntry`)
+- Types: PascalCase (`Entry`, `Project`, `Tag`)
 
 ### Code Style
 - ESLint + Prettier for formatting
@@ -207,21 +222,35 @@ docker compose exec pocketbase cp /pb/pb_data/data.db /pb/pb_data/backup.db
 
 ---
 
-## Project-Specific Notes
+## Data Model
 
 ### PocketBase Collections
 
-**notes** (main content collection)
+**entries** (main content collection)
 | Field | Type | Notes |
 |-------|------|-------|
 | id | string | Auto-generated |
-| type | select | 'url', 'snippet', 'note' |
+| mode | select | 'research', 'project', 'reference' |
 | title | string | Required |
-| content | text | Markdown or code |
-| url | url | For URL type entries |
-| language | string | For snippets (syntax highlighting) |
+| content | text | Markdown content |
+| url | url | For research links |
+| language | string | For code snippets (syntax highlighting) |
+| project | relation | Optional link to projects collection |
 | tags | relation | Many-to-many with tags collection |
-| collection_id | relation | Optional grouping |
+| linked_entries | relation | Cross-references to other entries |
+| promoted_from | relation | Tracks mode transitions |
+| archived | bool | Soft delete |
+| created | datetime | Auto |
+| updated | datetime | Auto |
+
+**projects**
+| Field | Type | Notes |
+|-------|------|-------|
+| id | string | Auto-generated |
+| name | string | Required |
+| description | text | Optional |
+| status | select | 'active', 'paused', 'completed', 'archived' |
+| color | string | Hex color for UI |
 | created | datetime | Auto |
 | updated | datetime | Auto |
 
@@ -229,15 +258,10 @@ docker compose exec pocketbase cp /pb/pb_data/data.db /pb/pb_data/backup.db
 | Field | Type | Notes |
 |-------|------|-------|
 | id | string | Auto-generated |
-| name | string | Unique, lowercase |
+| name | string | Unique, lowercase, normalized |
+| category | select | 'technology', 'concept', 'infrastructure', 'other' |
 | color | string | Hex color for UI |
-
-**collections** (groupings)
-| Field | Type | Notes |
-|-------|------|-------|
-| id | string | Auto-generated |
-| name | string | Required |
-| description | text | Optional |
+| auto_generated | bool | For future AI tagging |
 
 ### Environment Variables
 
@@ -256,10 +280,40 @@ PUBLIC_POCKETBASE_URL=https://pocketbase.haugaard.dev
 4. All API requests include auth token
 
 ### Search Implementation
-1. On app load, fetch all notes metadata (id, title, tags, type)
+1. On app load, fetch all entries metadata (id, title, tags, mode, project)
 2. Build FlexSearch index on client
 3. Search queries filter locally (0ms latency)
-4. Full note content fetched on selection
+4. Results grouped by mode in search UI
+5. Full entry content fetched on selection
+
+---
+
+## UI/UX Reference
+
+See `.docs/ui-ux-redesign-v2.md` for complete specification including:
+- Wireframes for all modes
+- Component inventory
+- User flows
+- Keyboard shortcuts
+- Visual design guidelines
+
+### Mode Color Coding
+| Mode | Color | Tailwind Class |
+|------|-------|----------------|
+| Research | Blue | `text-blue-500`, `bg-blue-50` |
+| Project | Amber | `text-amber-500`, `bg-amber-50` |
+| Reference | Green | `text-green-500`, `bg-green-50` |
+
+### Keyboard Shortcuts
+| Shortcut | Action |
+|----------|--------|
+| `⌘K` | Open global search |
+| `⌘N` | New entry (opens mode selector) |
+| `⌘1` | Switch to Research mode |
+| `⌘2` | Switch to Project mode |
+| `⌘3` | Switch to Reference mode |
+| `⌘S` | Save current entry |
+| `Esc` | Close modal / cancel edit |
 
 ---
 
@@ -300,6 +354,12 @@ docker compose up -d --build
 - [Tailwind CSS v4](https://tailwindcss.com/docs)
 - [FlexSearch](https://github.com/nextapps-de/flexsearch)
 - [CodeMirror 6](https://codemirror.net/)
+
+### Project-Specific Docs
+- `.docs/ui-ux-redesign-v2.md` - UI/UX specification
+- `.docs/homelab-notebook-brief-v1.md` - Project brief
+- `.docs/tech-stack-decision.md` - Technology choices
+- `.docs/deployment-strategy.md` - Deployment plan
 
 ### Homelab Infrastructure
 - Caddy config: `/etc/caddy/Caddyfile` on VPS

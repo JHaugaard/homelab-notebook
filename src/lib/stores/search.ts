@@ -1,80 +1,123 @@
+import { writable, derived, get } from 'svelte/store';
 import FlexSearch from 'flexsearch';
-import type { NoteSearchIndex } from '$types';
+import type { Entry, EntryMode, SearchFilters, SearchResult } from '$lib/types';
+import { entries } from './entries';
+import { browser } from '$app/environment';
 
-// FlexSearch index for instant client-side search
-class SearchIndex {
-	private index: FlexSearch.Document<NoteSearchIndex, string[]>;
-	private data: Map<string, NoteSearchIndex> = new Map();
+// FlexSearch index
+let searchIndex: FlexSearch.Index | null = null;
 
-	constructor() {
-		this.index = new FlexSearch.Document({
-			document: {
-				id: 'id',
-				index: ['title', 'tags'],
-				store: ['id', 'title', 'type', 'tags']
-			},
-			tokenize: 'forward',
-			resolution: 9,
-			cache: true
-		});
-	}
+// Search query and results
+export const searchQuery = writable('');
+export const searchFilters = writable<SearchFilters>({});
+export const isSearching = writable(false);
 
-	build(notes: NoteSearchIndex[]) {
-		// Clear existing index
-		this.data.clear();
+// Initialize FlexSearch index
+function createIndex() {
+	return new FlexSearch.Index({
+		tokenize: 'forward',
+		resolution: 9,
+		cache: 100
+	});
+}
 
-		// Add all notes to index
-		for (const note of notes) {
-			this.index.add(note);
-			this.data.set(note.id, note);
-		}
-	}
+// Build or rebuild the search index
+export async function buildSearchIndex(entriesList: Entry[]) {
+	if (!browser) return;
 
-	search(query: string): string[] {
-		if (!query.trim()) {
-			return Array.from(this.data.keys());
-		}
+	searchIndex = createIndex();
 
-		const results = this.index.search(query, {
-			limit: 100,
-			enrich: true
-		});
+	for (const entry of entriesList) {
+		const searchableText = [
+			entry.title,
+			entry.content || '',
+			entry.url || '',
+			entry.expand?.tags?.map((t) => t.name).join(' ') || '',
+			entry.expand?.project?.name || ''
+		].join(' ');
 
-		// Collect unique IDs from all field results
-		const ids = new Set<string>();
-		for (const result of results) {
-			for (const item of result.result) {
-				if (typeof item === 'string') {
-					ids.add(item);
-				} else if (item && typeof item === 'object' && 'id' in item) {
-					ids.add(item.id as string);
-				}
-			}
-		}
-
-		return Array.from(ids);
-	}
-
-	add(note: NoteSearchIndex) {
-		this.index.add(note);
-		this.data.set(note.id, note);
-	}
-
-	remove(id: string) {
-		this.index.remove(id);
-		this.data.delete(id);
-	}
-
-	update(note: NoteSearchIndex) {
-		this.index.update(note);
-		this.data.set(note.id, note);
+		searchIndex.add(entry.id, searchableText);
 	}
 }
 
-// Singleton search index
-export const searchIndex = new SearchIndex();
+// Search function
+export function search(query: string, filters: SearchFilters = {}): SearchResult[] {
+	if (!searchIndex || !query.trim()) return [];
 
-// Convenience function for searching
-export function searchNotes(query: string): string[] {
-	return searchIndex.search(query);
+	const entriesList = get(entries);
+
+	// Get matching IDs from FlexSearch
+	const matchingIds = searchIndex.search(query, { limit: 50 }) as string[];
+
+	// Filter and map to results
+	let results = entriesList
+		.filter((entry) => matchingIds.includes(entry.id))
+		.map((entry) => ({
+			entry,
+			score: matchingIds.indexOf(entry.id),
+			matches: [query] // Simplified - could be enhanced to show actual matches
+		}));
+
+	// Apply filters
+	if (filters.mode) {
+		results = results.filter((r) => r.entry.mode === filters.mode);
+	}
+
+	if (filters.project) {
+		results = results.filter((r) => r.entry.project === filters.project);
+	}
+
+	if (filters.tags && filters.tags.length > 0) {
+		results = results.filter((r) =>
+			filters.tags!.some((tagId) => r.entry.tags.includes(tagId))
+		);
+	}
+
+	if (filters.archived !== undefined) {
+		results = results.filter((r) => r.entry.archived === filters.archived);
+	}
+
+	// Sort by score (lower is better for FlexSearch)
+	results.sort((a, b) => a.score - b.score);
+
+	return results;
+}
+
+// Derived store for search results
+export const searchResults = derived(
+	[searchQuery, searchFilters, entries],
+	([$query, $filters]) => {
+		if (!$query.trim()) return [];
+		return search($query, $filters);
+	}
+);
+
+// Group search results by mode
+export const searchResultsByMode = derived(searchResults, ($results) => {
+	const groups: Record<EntryMode, SearchResult[]> = {
+		research: [],
+		project: [],
+		reference: []
+	};
+
+	for (const result of $results) {
+		groups[result.entry.mode].push(result);
+	}
+
+	return groups;
+});
+
+// Subscribe to entries changes and rebuild index
+if (browser) {
+	entries.subscribe((entriesList) => {
+		if (entriesList.length > 0) {
+			buildSearchIndex(entriesList);
+		}
+	});
+}
+
+// Clear search
+export function clearSearch() {
+	searchQuery.set('');
+	searchFilters.set({});
 }

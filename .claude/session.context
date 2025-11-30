@@ -1,61 +1,125 @@
 # Session Context - Homelab Notebook
 
 **Last Updated:** 2025-11-30
-**Session Purpose:** Project planning workflow using Skills chain
+**Session Purpose:** Complete UI/UX migration to three-mode architecture
 
 ---
 
 ## Workflow Progress
 
-| Phase | Status | Handoff Document |
-|-------|--------|------------------|
-| Phase 0: Project Brief | COMPLETE | .docs/brief-homelab-notebook.md |
-| Phase 0: Mode Declaration | COMPLETE | .docs/PROJECT-MODE.md |
-| Phase 1: Tech Stack | COMPLETE | .docs/tech-stack-decision.md |
-| Phase 2: Deployment | COMPLETE | .docs/deployment-strategy.md |
-| Phase 3: Project Spinup | PENDING | - |
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Project Brief v2 | COMPLETE | .docs/homelab-notebook-brief-v1.md |
+| UI/UX Redesign | COMPLETE | .docs/ui-ux-redesign-v2.md |
+| Migration Phase 1 | COMPLETE | Core structure, routes, AppShell, sidebar |
+| Migration Phase 2 | COMPLETE | Entry features, forms, timeline, editor, tags |
+| Migration Phase 3 | COMPLETE | Projects & organization |
+| Migration Phase 4 | COMPLETE | Search & navigation (FlexSearch, ⌘K) |
+| Migration Phase 5 | COMPLETE | Mode promotion, cross-refs, dashboard |
+| Migration Phase 6 | COMPLETE | Polish, loading states, AI stubs |
 
 **Mode:** DELIVERY (practical utility focus)
-**Model Used:** gemini-3-pro-preview (via Zen MCP)
 
 ---
 
-## Key Decisions
+## Current State
 
-### Project
-- **Name:** Homelab Notebook
-- **Goal:** Capture/retrieve technical knowledge in under 5 seconds
-- **Type:** Lightweight PKM (Personal Knowledge Management)
-- **User:** Single user, personal use
+### What's Built (This Session - Complete Rebuild)
 
-### Tech Stack (The "Hyper-Light" Stack)
-- **Frontend:** SvelteKit
-- **Backend/DB:** PocketBase (Go binary, embedded SQLite)
-- **Styling:** Tailwind CSS
-- **Search:** FlexSearch.js (client-side, zero-latency)
-- **Editor:** CodeMirror 6
-- **Icons:** Lucide Svelte
+#### Three-Mode Architecture
+- **Research Mode** (`/research`) - Resource collection, URLs, links
+- **Project Mode** (`/project`) - Developer journal with timeline view
+- **Reference Mode** (`/reference`) - Polished documentation/tutorials
 
-### Deployment
-- **Target:** VPS/Docker on existing Hostinger VPS8
-- **Domain:** notebook.haugaard.dev
-- **Network:** homelab-net (same as existing PocketBase)
-- **SSL:** Caddy (automatic Let's Encrypt)
-- **Cost:** $0/month (existing infrastructure)
+#### Core Features
+- Mode promotion workflow (move/copy entries between modes)
+- Cross-entry linking system
+- FlexSearch-powered instant search (⌘K)
+- Quick capture modal (⌘N)
+- Project timeline with date groupings
+- Toast notifications
+- View preferences (persisted to localStorage)
+
+#### Routes Created
+- `/` - Dashboard with mode overview, recent entries, active projects
+- `/research`, `/research/new`, `/research/[id]`, `/research/[id]/edit`
+- `/project`, `/project/new`, `/project/[id]`, `/project/[id]/edit`
+- `/reference`, `/reference/new`, `/reference/[id]`, `/reference/[id]/edit`
+- `/projects`, `/projects/[id]` - Project management
+- `/tags` - Tag management
+- `/recent` - Recent entries across all modes
+- `/archived` - Archived entries
+- `/settings` - View preferences and keyboard shortcuts
+
+#### Components Created
+- **Layout:** AppShell, Sidebar, Header, Toast
+- **UI:** Button, Input, Badge, Modal, Skeleton, EmptyState, ErrorBanner
+- **Editor:** MarkdownEditor, TagInput
+- **Features:** QuickCaptureModal, NewProjectModal, PromoteEntryModal, LinkEntriesModal
+- **Nav:** GlobalSearch
+
+#### Stores
+- `entries` - Entry CRUD with mode filtering
+- `projects` - Project management
+- `tags` - Tag management
+- `ui` - UI state, toasts, view preferences
+- `search` - FlexSearch integration
+
+#### Services
+- `pocketbase.ts` - PocketBase client and CRUD operations
+- `ai.ts` - Ollama integration stubs (for future AI features)
+
+### Bug Fixes Applied
+- Fixed Svelte 5 `onclick|stopPropagation` syntax (invalid in Svelte 5)
+- Fixed nested button in sidebar (invalid HTML)
+- Added timeout for PocketBase connection (prevents infinite loading)
+- Fixed TagInput to use store when availableTags not provided
+- Added minHeight prop to MarkdownEditor
+- Added promoted_from and linked_entries to EntryFormData type
 
 ---
 
-## Next Action
+## Key Architecture Decisions
 
-Invoke **project-spinup** skill to scaffold the project foundation.
+### Mode Philosophy
+- **Primary mode with promotion** - Entries start in one mode, can be promoted/moved
+- **Projects optional** - Entries don't require a project association
+- **Flexible timeline** - Both newest-first and oldest-first views available
+
+### Data Model
+```
+entries: id, mode, title, content, url, project, tags[], linked_entries[], promoted_from, archived
+projects: id, name, description, status, color
+tags: id, name, category, color, auto_generated
+```
+
+### Mode Colors
+- Research: Blue (`text-blue-600`, `bg-blue-50`)
+- Project: Amber (`text-amber-600`, `bg-amber-50`)
+- Reference: Green (`text-green-600`, `bg-green-50`)
+
+---
+
+## Known Issues
+
+1. **Vite version conflict** - TypeScript error in vite.config.ts (pre-existing, doesn't affect runtime)
+2. **PocketBase collections needed** - Need to create entries, projects, tags collections in PocketBase
+
+---
+
+## Next Actions
+
+1. Set up PocketBase collections (entries, projects, tags)
+2. Test full CRUD operations
+3. Deploy to production (notebook.haugaard.dev)
 
 ---
 
 ## Reference Files
 
-- docs/brainstorm.md - Original project idea
-- docs/homelab-summary.xml - Infrastructure details
-- .docs/brief-homelab-notebook.md - Project brief
-- .docs/PROJECT-MODE.md - Workflow mode (DELIVERY)
-- .docs/tech-stack-decision.md - Tech stack rationale
-- .docs/deployment-strategy.md - Deployment plan
+- `.docs/homelab-notebook-brief-v1.md` - Alternative project brief (three-mode system)
+- `.docs/ui-ux-redesign-v2.md` - Comprehensive UI/UX specification
+- `CLAUDE.md` - Updated project documentation
+- `src/lib/types/index.ts` - TypeScript types and mode configs
+- `src/lib/services/pocketbase.ts` - PocketBase integration
+- `src/lib/services/ai.ts` - AI extension stubs
