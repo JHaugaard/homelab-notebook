@@ -54,3 +54,9 @@ Docs
 # Playwright
 playwright-report
 test-results
+
+# Claude Code
+.claude
+
+# Supabase local
+supabase/.temp

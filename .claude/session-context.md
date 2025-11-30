@@ -1,8 +1,8 @@
 # Session Context: Homelab Notebook
 
-## Current Phase: Guided Setup Step 9 (Three-Mode Interface)
+## Current Phase: Guided Setup Step 11 Complete (Production Docker)
 
-**Date:** 2025-11-29
+**Date:** 2025-11-30
 **Mode:** LEARNING (Guided Setup approach)
 
 ---
@@ -14,7 +14,7 @@
 - Generated CLAUDE.md with 11-step guided setup
 - Created Docker configuration and directory structure
 
-### Guided Setup Progress (Steps 1-8 Complete)
+### Guided Setup Progress (Steps 1-9 Complete)
 
 #### Step 1: Next.js Project Structure ✅
 - Initialized Next.js 15 with React 19, TypeScript, Tailwind CSS
@@ -76,7 +76,6 @@ Implemented complete Supabase Auth with email/password:
 - `/login` (src/app/login/page.tsx) - Login form with Suspense boundary
 - `/signup` (src/app/signup/page.tsx) - Signup form with email confirmation message
 - `/auth/callback` (src/app/auth/callback/route.ts) - Handles email confirmation code exchange (PKCE)
-- `/dashboard` (src/app/dashboard/page.tsx) - Protected page with user info and sign-out
 
 **Components Created:**
 - `AuthForm` (src/components/auth/auth-form.tsx) - Reusable form for both login and signup
@@ -96,24 +95,9 @@ Implemented complete note management with Server Actions and AI auto-tagging:
 
 **Components Created (src/components/notes/):**
 - `NoteList` - Displays notes with tags, mode badges, timestamps
-- `NoteEditor` - Create/edit form with mode selection, tag management
+- `NoteEditor` - Create/edit form with mode selection, tag management (updated with `defaultMode` prop)
 - `ModeBadge` - Color-coded badge for Research/Project/Reference
 - `TagBadge` - Displays tag with AI indicator
-
-**Pages Created:**
-- `/notes` (src/app/notes/page.tsx) - Note list with mode filtering tabs
-- `/notes/new` (src/app/notes/new/page.tsx) - New note creation page
-- `/notes/[id]` (src/app/notes/[id]/page.tsx) - Note detail/edit page
-
-**Dashboard Updated (src/app/dashboard/page.tsx):**
-- Shows recent notes with tags
-- Quick "New Note" button
-- Mode cards now link to filtered note views
-
-**Key Concepts Explained:**
-- Server Actions vs API Routes (when to use each)
-- Why Server Actions are preferred for internal React components
-- Auto-tagging flow with Ollama integration
 
 #### Step 8: Search Implementation ✅
 Implemented full-text search using PostgreSQL tsvector:
@@ -128,21 +112,109 @@ Implemented full-text search using PostgreSQL tsvector:
 - `SearchBar` - Client component with debounced input (300ms), keyboard navigation, quick results dropdown
 - `SearchResults` - Displays results with highlighted snippets from ts_headline()
 
-**Updated Files:**
-- `src/app/notes/page.tsx` - Added search bar, conditional rendering for search vs list views
-- `src/app/globals.css` - Added `.search-headline mark` styles for highlighting
+#### Step 9: Three-Mode Interface ✅
+Implemented dedicated mode pages with shared layout:
 
-**Key Concepts Explained:**
-- TSVECTOR: Text converted to normalized lexemes ("quick brown foxes" → 'brown':3 'fox':4 'quick':2)
-- TSQUERY: Search queries parsed with websearch_to_tsquery (supports: OR, -, quoted phrases)
-- ts_rank(): Scores relevance for ranking results
-- ts_headline(): Generates snippets with <mark> tags for highlighting
-- pg_trgm: Trigram matching for fuzzy search (catches typos)
-- Debouncing: Wait 300ms after typing stops before searching
+**Shared Navigation (src/components/navigation/):**
+- `MainNav` - Sticky header with logo, mode tabs (Research/Project/Reference), user menu
+- Mode tabs with active state highlighting using consistent colors
+- Mobile-responsive with horizontal scrolling tabs
+- Uses `usePathname()` to detect current route for active state
+
+**(auth) Route Group Layout (src/app/(auth)/layout.tsx):**
+- Wraps all protected pages with shared MainNav
+- Auth check with redirect to login if not authenticated
+- Passes user email to navigation component
+
+**Mode-Specific Landing Pages:**
+- `/research` (src/app/(auth)/research/page.tsx) - Purple themed, for external resources
+- `/project` (src/app/(auth)/project/page.tsx) - Blue themed, for active work notes
+- `/reference` (src/app/(auth)/reference/page.tsx) - Green themed, for polished guides
+- Each shows notes filtered by mode, mode-specific empty states, search scoped to mode
+
+**Mode-Specific New Note Pages:**
+- `/research/new` - Pre-selects Research mode
+- `/project/new` - Pre-selects Project mode
+- `/reference/new` - Pre-selects Reference mode
+
+**Updated Core Pages (moved to (auth) route group):**
+- `/dashboard` - Uses shared layout, links to mode pages with colored cards
+- `/notes` - Shows all notes across modes with mode filter tabs
+- `/notes/[id]` - Breadcrumbs link back to note's mode page
+- `/notes/new` - Generic new note (defaults to Project)
+
+**Key Concepts:**
+- Route Groups: Folders in parentheses `(auth)` don't affect URL but allow shared layouts
+- Layout Hierarchy: Root → (auth) → Page, navigation persists across mode pages
+- Consistent Color Coding: Research=Purple, Project=Blue, Reference=Green
+
+#### Step 11: Production Docker Setup ✅
+Prepared production-ready Docker configuration for VPS2 deployment:
+
+**Files Created/Updated:**
+- `src/app/api/health/route.ts` - Health check endpoint for Docker healthcheck
+- `Dockerfile` - Added `curl` for health checks in production stage
+- `.dockerignore` - Added `.claude/` and `supabase/.temp`
+
+**Docker Configuration:**
+- Multi-stage build: base → deps → development → builder → production
+- Uses `node:20-alpine` for minimal image size (387MB final)
+- Non-root user (`nextjs:nodejs`) in production
+- Standalone output mode for optimized deployment
+- Health check at `/api/health` returns JSON: `{status, timestamp, uptime}`
+
+**docker-compose.prod.yml Features:**
+- Health check: `curl -f http://localhost:3000/api/health`
+- Logging with rotation: max 10MB, 3 files
+- Auto-restart: `unless-stopped`
+- Environment via `.env` file
+
+**Verified:**
+- `pnpm build` succeeds (creates standalone output)
+- `docker compose -f docker-compose.prod.yml build` succeeds
+- Container starts and health endpoint responds correctly
+- Landing page returns HTTP 200
+
+---
+
+## Workflow Decision: Testing Deferred
+
+**Decision:** Testing (Step 10) has been deferred until after Docker setup is complete.
+
+**Rationale:**
+1. More code to test - After Step 9, the application has substantial functionality
+2. Clearer patterns - Testing the finalized application structure is more valuable
+3. Avoid test rewrites - Docker setup may reveal issues that affect tests
+4. test-orchestrator skill is explicitly marked "optional" and supports flexible entry
+
+**Next Action:** Invoke `test-orchestrator` skill to set up testing infrastructure.
 
 ---
 
 ## Key Technical Details
+
+### Route Groups (Parentheses Folders)
+```
+src/app/
+├── (auth)/           # Route group - doesn't affect URL
+│   ├── layout.tsx    # Shared layout for all routes inside
+│   ├── dashboard/    # URL: /dashboard
+│   ├── research/     # URL: /research
+│   ├── project/      # URL: /project
+│   ├── reference/    # URL: /reference
+│   └── notes/        # URL: /notes
+├── login/            # URL: /login (outside group, no shared layout)
+└── signup/           # URL: /signup
+```
+The `(auth)` folder creates a logical grouping without adding to the URL path.
+
+### Layout Hierarchy
+```
+Root Layout (fonts, global styles)
+  └── (auth) Layout (MainNav, auth check)
+        └── Page Content
+```
+Layouts wrap their children. The auth layout provides navigation that persists across all mode pages without re-rendering on navigation.
 
 ### Server Actions vs API Routes
 | Aspect | Server Actions | API Routes |
@@ -201,11 +273,6 @@ All tables have Row Level Security enabled:
 - Junction tables check parent ownership
 - Prevents data access even with anon key
 
-### Search Capabilities
-- PostgreSQL full-text search (tsvector + GIN index)
-- pg_trgm for fuzzy matching (typo tolerance)
-- Three RPC functions: search_notes, quick_search_notes, search_tags
-
 ---
 
 ## Current Project Structure
@@ -215,91 +282,72 @@ homelab-notebook/
 ├── src/
 │   ├── app/
 │   │   ├── globals.css          # Tailwind + shadcn theme + search highlights
-│   │   ├── layout.tsx           # Root layout
-│   │   ├── page.tsx             # Landing page
-│   │   ├── login/
-│   │   │   └── page.tsx         # Login page
-│   │   ├── signup/
-│   │   │   └── page.tsx         # Signup page
-│   │   ├── auth/
-│   │   │   └── callback/
-│   │   │       └── route.ts     # Email confirmation handler
-│   │   ├── dashboard/
-│   │   │   └── page.tsx         # Protected dashboard with recent notes
-│   │   └── notes/
-│   │       ├── page.tsx         # Notes list with search and filtering
-│   │       ├── new/
-│   │       │   └── page.tsx     # New note page
-│   │       └── [id]/
-│   │           └── page.tsx     # Note detail/edit page
+│   │   ├── layout.tsx           # Root layout (fonts)
+│   │   ├── page.tsx             # Public landing page
+│   │   ├── login/page.tsx       # Login page
+│   │   ├── signup/page.tsx      # Signup page
+│   │   ├── auth/callback/route.ts  # Email confirmation handler
+│   │   └── (auth)/              # Route group for protected pages
+│   │       ├── layout.tsx       # Shared layout with MainNav
+│   │       ├── dashboard/page.tsx
+│   │       ├── notes/
+│   │       │   ├── page.tsx     # All notes list
+│   │       │   ├── new/page.tsx
+│   │       │   └── [id]/page.tsx
+│   │       ├── research/
+│   │       │   ├── page.tsx     # Research mode landing
+│   │       │   └── new/page.tsx
+│   │       ├── project/
+│   │       │   ├── page.tsx     # Project mode landing
+│   │       │   └── new/page.tsx
+│   │       └── reference/
+│   │           ├── page.tsx     # Reference mode landing
+│   │           └── new/page.tsx
 │   ├── components/
 │   │   ├── auth/
-│   │   │   ├── auth-form.tsx    # Reusable login/signup form
+│   │   │   ├── auth-form.tsx
 │   │   │   └── sign-out-button.tsx
-│   │   ├── notes/
-│   │   │   ├── index.ts         # Barrel exports
-│   │   │   ├── note-list.tsx    # Note list component
-│   │   │   └── note-editor.tsx  # Note create/edit form
-│   │   ├── search/
-│   │   │   ├── index.ts         # Barrel exports
-│   │   │   ├── search-bar.tsx   # Debounced search input with dropdown
-│   │   │   └── search-results.tsx # Results with highlighted snippets
-│   │   └── ui/                  # shadcn/ui components
-│   │       ├── button.tsx
-│   │       ├── input.tsx
-│   │       ├── card.tsx
-│   │       ├── dialog.tsx
-│   │       └── textarea.tsx
-│   ├── lib/
-│   │   ├── auth/
-│   │   │   └── actions.ts       # signIn, signUp, signOut, getUser
-│   │   ├── notes/
-│   │   │   └── actions.ts       # CRUD + tag operations
-│   │   ├── search/
-│   │   │   └── actions.ts       # searchNotes, quickSearch, searchTags
-│   │   ├── supabase/
-│   │   │   ├── client.ts        # Browser client
-│   │   │   ├── server.ts        # Server client
-│   │   │   └── middleware.ts    # Session refresh + route protection
-│   │   ├── ollama/
+│   │   ├── navigation/
 │   │   │   ├── index.ts
-│   │   │   ├── client.ts        # API client
-│   │   │   ├── tags.ts          # Tag generation
-│   │   │   └── types.ts
-│   │   └── utils.ts             # cn() helper
-│   ├── hooks/                   # (empty, ready for custom hooks)
+│   │   │   └── main-nav.tsx     # Shared navigation with mode switcher
+│   │   ├── notes/
+│   │   │   ├── index.ts
+│   │   │   ├── note-list.tsx
+│   │   │   └── note-editor.tsx  # Updated with defaultMode prop
+│   │   ├── search/
+│   │   │   ├── index.ts
+│   │   │   ├── search-bar.tsx
+│   │   │   └── search-results.tsx
+│   │   └── ui/                  # shadcn/ui components
+│   ├── lib/
+│   │   ├── auth/actions.ts
+│   │   ├── notes/actions.ts
+│   │   ├── search/actions.ts
+│   │   ├── supabase/
+│   │   │   ├── client.ts
+│   │   │   ├── server.ts
+│   │   │   └── middleware.ts
+│   │   ├── ollama/
+│   │   └── utils.ts
 │   ├── types/
-│   │   ├── database.ts          # Supabase types
-│   │   └── index.ts             # App types
-│   └── middleware.ts            # Next.js middleware entry
-├── supabase/
-│   └── migrations/              # 7 SQL migration files
+│   │   ├── database.ts
+│   │   └── index.ts
+│   └── middleware.ts
+├── supabase/migrations/         # 7 SQL migration files
 ├── package.json
-├── tsconfig.json
-├── next.config.ts
-├── tailwind.config.ts
-├── components.json              # shadcn/ui config
-└── ... (Docker, env, etc.)
+└── ... (configs)
 ```
 
 ---
 
 ## Next Steps
 
-### Immediate: Step 9 - Three-Mode Interface
-Implement the three-mode interface: Research, Project, Reference.
-- Create mode-specific pages and navigation
-- Share layouts while having distinct modes
-- Cross-mode navigation
+### Immediate: Testing Setup
 
-**Say to Claude Code:**
-```
-Implement the three-mode interface: Research, Project, Reference.
-Create mode-specific pages and navigation.
-Explain how to share layouts while having distinct modes.
-```
+Invoke the `test-orchestrator` skill to set up testing infrastructure.
 
-### Remaining Guided Setup Steps
+### Guided Setup Steps Summary
+
 | Step | Topic | Status |
 |------|-------|--------|
 | 1 | Next.js Project Structure | ✅ Complete |
@@ -310,32 +358,23 @@ Explain how to share layouts while having distinct modes.
 | 6 | Authentication | ✅ Complete |
 | 7 | Note CRUD + Auto-Tagging | ✅ Complete |
 | 8 | Search | ✅ Complete |
-| 9 | Three-Mode Interface | ⏭️ Next |
-| 10 | Testing | Pending |
-| 11 | Production Docker | Pending |
+| 9 | Three-Mode Interface | ✅ Complete |
+| 10 | Testing | ⏭️ Deferred (invoke test-orchestrator) |
+| 11 | Production Docker | ✅ Complete |
 
 ---
 
 ## Important Notes
 
+### Mode Color Coding (Consistent Across App)
+- **Research:** Purple (`bg-purple-100 text-purple-700`)
+- **Project:** Blue (`bg-blue-100 text-blue-700`)
+- **Reference:** Green (`bg-green-100 text-green-700`)
+
+Used in: Navigation tabs, mode badges, buttons, empty state icons
+
 ### ⚠️ Required Migration for Search
-Before testing search, ensure migration `00007_create_search_functions.sql` is applied:
-
-```sql
--- This migration creates:
--- 1. pg_trgm extension (for fuzzy matching)
--- 2. search_notes() function (full-text search with filters)
--- 3. quick_search_notes() function (fast autocomplete)
--- 4. search_tags() function (fuzzy tag search)
--- 5. Trigram indexes on notes.title and tags.normalized_name
-```
-
-To apply via Supabase Dashboard:
-1. Go to SQL Editor
-2. Paste contents of `supabase/migrations/00007_create_search_functions.sql`
-3. Run the query
-
-Or via CLI: `npx supabase db push`
+Before testing search, ensure migration `00007_create_search_functions.sql` is applied.
 
 ### Dependencies Installed
 - Next.js 15.1.3, React 19.0.0
@@ -344,7 +383,7 @@ Or via CLI: `npx supabase db push`
 - shadcn/ui (new-york style) with Radix primitives
 - class-variance-authority, clsx, tailwind-merge
 - date-fns (for timestamp formatting)
-- Vitest, Playwright (for testing)
+- Vitest, Playwright (for testing - not yet configured)
 
 ### Environment Variables Needed
 See .env.example - requires:
@@ -354,26 +393,18 @@ See .env.example - requires:
 - OLLAMA_BASE_URL
 - NEXT_PUBLIC_APP_URL (used for email confirmation redirects)
 
-### Testing Search
-To verify search works:
-1. Ensure migration 00007 is applied
-2. Run `pnpm dev`
-3. Log in at `/login`
-4. Create a few notes with content
-5. Visit `/notes` → Use search bar
-6. Quick results should appear in dropdown
-7. Press Enter to see full search results with highlights
-
 ### TypedRoutes Workaround
 Next.js's experimental `typedRoutes` feature requires static href values.
 For dynamic routes, we cast to `Route<string>` type:
 ```typescript
-const buildHref = (mode?: NoteMode): Route<string> => {
-  return `/notes?mode=${mode}` as Route<string>;
+const modeLinks: Record<NoteMode, Route<string>> = {
+  research: "/research" as Route<string>,
+  project: "/project" as Route<string>,
+  reference: "/reference" as Route<string>,
 };
 ```
 
 ---
 
-**Last Updated:** 2025-11-29
-**Next Action:** Step 9 - Three-Mode Interface
+**Last Updated:** 2025-11-30
+**Next Action:** Invoke test-orchestrator skill for testing setup
