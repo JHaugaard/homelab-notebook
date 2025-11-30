@@ -9,21 +9,26 @@
 		onclick?: () => void;
 	}
 
-	let { name, color = '#3b82f6', removable = false, onremove, onclick }: Props = $props();
+	let { name, color = '#2383e2', removable = false, onremove, onclick }: Props = $props();
+
+	// Create a subtle background with low opacity
+	const bgOpacity = '14';
+	const borderOpacity = '30';
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 <span
-	class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-	style="background-color: {color}20; color: {color}; border: 1px solid {color}40;"
+	class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all duration-100"
+	style="background-color: {color}{bgOpacity}; color: {color}; border: 1px solid {color}{borderOpacity};"
 	onclick={onclick}
 	class:cursor-pointer={!!onclick}
+	class:hover:opacity-80={!!onclick}
 >
 	{name}
 	{#if removable}
 		<button
 			type="button"
-			class="ml-0.5 hover:opacity-70 focus:outline-none"
+			class="ml-0.5 opacity-60 hover:opacity-100 focus:outline-none transition-opacity"
 			onclick={(e) => {
 				e.stopPropagation();
 				onremove?.();

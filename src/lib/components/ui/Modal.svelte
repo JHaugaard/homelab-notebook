@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { X } from 'lucide-svelte';
+	import { fly, fade } from 'svelte/transition';
 	import Button from './Button.svelte';
 
 	interface Props {
@@ -30,21 +31,32 @@
 {#if open}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+		class="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] bg-black/20"
 		onclick={handleBackdropClick}
+		transition:fade={{ duration: 150 }}
 	>
 		<div
-			class="w-full max-w-lg bg-surface border border-border rounded-xl shadow-xl"
+			class="w-full max-w-lg bg-[var(--color-background)] rounded-lg shadow-lg overflow-hidden"
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="modal-title"
+			transition:fly={{ y: -8, duration: 200 }}
 		>
-			<div class="flex items-center justify-between px-6 py-4 border-b border-border">
-				<h2 id="modal-title" class="text-lg font-semibold text-text-primary">{title}</h2>
-				<Button variant="ghost" size="sm" onclick={onclose}>
+			<!-- Header -->
+			<div class="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
+				<h2 id="modal-title" class="text-lg font-serif font-semibold text-[var(--color-text)] tracking-tight">
+					{title}
+				</h2>
+				<button
+					type="button"
+					class="p-1.5 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)] transition-colors"
+					onclick={onclose}
+				>
 					<X class="w-5 h-5" />
-				</Button>
+				</button>
 			</div>
+
+			<!-- Content -->
 			<div class="p-6">
 				{@render children()}
 			</div>

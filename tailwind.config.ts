@@ -5,19 +5,54 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				background: 'var(--color-background)',
-				surface: 'var(--color-surface)',
-				'surface-hover': 'var(--color-surface-hover)',
-				border: 'var(--color-border)',
-				'text-primary': 'var(--color-text)',
-				'text-muted': 'var(--color-text-muted)',
+				background: {
+					DEFAULT: 'var(--color-background)',
+					secondary: 'var(--color-background-secondary)'
+				},
+				surface: {
+					DEFAULT: 'var(--color-surface)',
+					hover: 'var(--color-surface-hover)',
+					active: 'var(--color-surface-active)'
+				},
+				border: {
+					DEFAULT: 'var(--color-border)',
+					strong: 'var(--color-border-strong)'
+				},
+				text: {
+					DEFAULT: 'var(--color-text)',
+					secondary: 'var(--color-text-secondary)',
+					muted: 'var(--color-text-muted)',
+					light: 'var(--color-text-light)'
+				},
 				primary: {
 					DEFAULT: 'var(--color-primary)',
-					hover: 'var(--color-primary-hover)'
+					hover: 'var(--color-primary-hover)',
+					subtle: 'var(--color-primary-subtle)'
+				},
+				// Notion semantic colors
+				notion: {
+					blue: 'var(--color-blue)',
+					green: 'var(--color-green)',
+					yellow: 'var(--color-yellow)',
+					orange: 'var(--color-orange)',
+					pink: 'var(--color-pink)',
+					purple: 'var(--color-purple)'
 				}
 			},
 			fontFamily: {
-				mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+				serif: ['var(--font-serif)'],
+				sans: ['var(--font-sans)'],
+				mono: ['var(--font-mono)']
+			},
+			boxShadow: {
+				sm: 'var(--shadow-sm)',
+				md: 'var(--shadow-md)',
+				lg: 'var(--shadow-lg)'
+			},
+			borderRadius: {
+				sm: 'var(--radius-sm)',
+				md: 'var(--radius-md)',
+				lg: 'var(--radius-lg)'
 			}
 		}
 	},
