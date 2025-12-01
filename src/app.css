@@ -1,12 +1,12 @@
+/* Import distinctive fonts - must come before Tailwind */
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+
 @import 'tailwindcss';
 
 /*
  * Homelab Notebook - Notion-inspired Light Theme
  * An editorial warmth aesthetic with refined typography
  */
-
-/* Import distinctive fonts */
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@300;400;500;600&display=swap');
 
 /* Custom CSS variables for Notion-like theming */
 :root {

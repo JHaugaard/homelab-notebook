@@ -1,7 +1,7 @@
 # Session Context - Homelab Notebook
 
-**Last Updated:** 2025-11-30
-**Session Purpose:** Complete UI/UX migration to three-mode architecture
+**Last Updated:** 2025-12-01
+**Session Purpose:** Fix app initialization and PocketBase integration
 
 ---
 
@@ -17,6 +17,8 @@
 | Migration Phase 4 | COMPLETE | Search & navigation (FlexSearch, ⌘K) |
 | Migration Phase 5 | COMPLETE | Mode promotion, cross-refs, dashboard |
 | Migration Phase 6 | COMPLETE | Polish, loading states, AI stubs |
+| PocketBase Setup | COMPLETE | Collections created, API rules configured |
+| App Init Fix | COMPLETE | Fixed SSR hydration blocking issue |
 
 **Mode:** DELIVERY (practical utility focus)
 
@@ -24,14 +26,32 @@
 
 ## Current State
 
-### What's Built (This Session - Complete Rebuild)
+### Today's Session (2025-12-01) - Bug Fixes
 
-#### Three-Mode Architecture
+#### Issues Fixed
+
+1. **CSS @import order error** - Google Fonts `@import` was after Tailwind, causing PostCSS error. Moved fonts import to top of `app.css`.
+
+2. **PocketBase API 403 errors** - All collection API rules were set to "Superusers only". Unlocked and cleared rules for `entries`, `projects`, `tags` collections to allow public access.
+
+3. **App stuck on loading spinner** - SSR hydration issue where `onMount` wasn't executing to flip `loading` from `true` to `false`. Root cause likely FlexSearch module-level subscription blocking hydration. Fixed by removing loading gate entirely - app now renders immediately and loads data in background.
+
+#### Configuration Changes
+
+- **PocketBase instance**: Running on port 8095 (not 8090)
+- **ENV**: `PUBLIC_POCKETBASE_URL=http://localhost:8095` in `.env.local`
+- **API Rules**: All collections (entries, projects, tags) have empty rules (public access for dev)
+
+---
+
+## What's Built
+
+### Three-Mode Architecture
 - **Research Mode** (`/research`) - Resource collection, URLs, links
 - **Project Mode** (`/project`) - Developer journal with timeline view
 - **Reference Mode** (`/reference`) - Polished documentation/tutorials
 
-#### Core Features
+### Core Features
 - Mode promotion workflow (move/copy entries between modes)
 - Cross-entry linking system
 - FlexSearch-powered instant search (⌘K)
@@ -40,7 +60,7 @@
 - Toast notifications
 - View preferences (persisted to localStorage)
 
-#### Routes Created
+### Routes
 - `/` - Dashboard with mode overview, recent entries, active projects
 - `/research`, `/research/new`, `/research/[id]`, `/research/[id]/edit`
 - `/project`, `/project/new`, `/project/[id]`, `/project/[id]/edit`
@@ -51,31 +71,23 @@
 - `/archived` - Archived entries
 - `/settings` - View preferences and keyboard shortcuts
 
-#### Components Created
+### Components
 - **Layout:** AppShell, Sidebar, Header, Toast
 - **UI:** Button, Input, Badge, Modal, Skeleton, EmptyState, ErrorBanner
 - **Editor:** MarkdownEditor, TagInput
 - **Features:** QuickCaptureModal, NewProjectModal, PromoteEntryModal, LinkEntriesModal
 - **Nav:** GlobalSearch
 
-#### Stores
+### Stores
 - `entries` - Entry CRUD with mode filtering
 - `projects` - Project management
 - `tags` - Tag management
 - `ui` - UI state, toasts, view preferences
 - `search` - FlexSearch integration
 
-#### Services
+### Services
 - `pocketbase.ts` - PocketBase client and CRUD operations
 - `ai.ts` - Ollama integration stubs (for future AI features)
-
-### Bug Fixes Applied
-- Fixed Svelte 5 `onclick|stopPropagation` syntax (invalid in Svelte 5)
-- Fixed nested button in sidebar (invalid HTML)
-- Added timeout for PocketBase connection (prevents infinite loading)
-- Fixed TagInput to use store when availableTags not provided
-- Added minHeight prop to MarkdownEditor
-- Added promoted_from and linked_entries to EntryFormData type
 
 ---
 
@@ -103,14 +115,14 @@ tags: id, name, category, color, auto_generated
 ## Known Issues
 
 1. **Vite version conflict** - TypeScript error in vite.config.ts (pre-existing, doesn't affect runtime)
-2. **PocketBase collections needed** - Need to create entries, projects, tags collections in PocketBase
+2. **GlobalSearch warning** - `inputEl` not declared with `$state()` (Svelte 5 warning, non-blocking)
 
 ---
 
 ## Next Actions
 
-1. Set up PocketBase collections (entries, projects, tags)
-2. Test full CRUD operations
+1. Test full CRUD operations with PocketBase
+2. Add sample data to test UI
 3. Deploy to production (notebook.haugaard.dev)
 
 ---
@@ -123,3 +135,11 @@ tags: id, name, category, color, auto_generated
 - `src/lib/types/index.ts` - TypeScript types and mode configs
 - `src/lib/services/pocketbase.ts` - PocketBase integration
 - `src/lib/services/ai.ts` - AI extension stubs
+
+---
+
+## PocketBase Admin
+
+- **URL**: http://localhost:8095/_/
+- **Collections**: users, entries, projects, tags
+- **API Rules**: All unlocked (empty = public access for dev)
