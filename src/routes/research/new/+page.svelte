@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Header } from '$lib/components/layout';
-	import { Button, Input } from '$lib/components/ui';
+	import { Button, Input, AttachmentDropZone } from '$lib/components/ui';
 	import { entries, tags, projects, toasts } from '$lib/stores';
 	import type { EntryFormData } from '$lib/types';
 	import TagInput from '$lib/components/editor/TagInput.svelte';
@@ -12,6 +12,7 @@
 	let content = $state('');
 	let selectedTags = $state<string[]>([]);
 	let selectedProject = $state<string | undefined>(undefined);
+	let attachmentFiles = $state<File[]>([]);
 	let isSubmitting = $state(false);
 
 	async function handleSubmit() {
@@ -29,7 +30,8 @@
 				content: content.trim(),
 				url: url.trim() || undefined,
 				tags: selectedTags,
-				project: selectedProject
+				project: selectedProject,
+				attachments: attachmentFiles.length > 0 ? attachmentFiles : undefined
 			};
 
 			const entry = await entries.create(data);
@@ -89,26 +91,10 @@
 			/>
 		</div>
 
-		<!-- Notes -->
-		<div>
-			<label for="content" class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
-				Notes
-			</label>
-			<MarkdownEditor bind:value={content} placeholder="Add notes about this resource..." />
-		</div>
-
-		<!-- Tags -->
-		<div>
-			<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
-				Tags
-			</label>
-			<TagInput bind:selectedTags availableTags={$tags} />
-		</div>
-
-		<!-- Project -->
-		<div>
+		<!-- Project (narrower) -->
+		<div class="max-w-xs">
 			<label for="project" class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
-				Project (optional)
+				Project
 			</label>
 			<select
 				id="project"
@@ -120,6 +106,33 @@
 					<option value={project.id}>{project.name}</option>
 				{/each}
 			</select>
+		</div>
+
+		<!-- Notes -->
+		<div>
+			<label for="content" class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+				Notes
+			</label>
+			<MarkdownEditor bind:value={content} placeholder="Add notes about this resource..." />
+		</div>
+
+		<!-- Tags and Attachments side by side -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<!-- Tags -->
+			<div>
+				<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+					Tags
+				</label>
+				<TagInput bind:selectedTags availableTags={$tags} />
+			</div>
+
+			<!-- Attachments -->
+			<div>
+				<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+					Attachments
+				</label>
+				<AttachmentDropZone bind:files={attachmentFiles} />
+			</div>
 		</div>
 	</div>
 </div>

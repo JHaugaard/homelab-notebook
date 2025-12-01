@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
 	import {
 		ArrowLeft,
 		Edit,
@@ -43,16 +42,24 @@
 		return groups;
 	});
 
-	onMount(async () => {
+	async function loadProject(projectId: string) {
+		loading = true;
 		try {
-			project = await projectService.getById(id);
-			projectEntries = await entryService.getByProject(id);
+			project = await projectService.getById(projectId);
+			projectEntries = await entryService.getByProject(projectId);
 		} catch (error) {
 			console.error('Failed to load project:', error);
 			toasts.error('Project not found');
 			goto('/projects');
 		} finally {
 			loading = false;
+		}
+	}
+
+	// React to id changes (handles both initial load and navigation between projects)
+	$effect(() => {
+		if (id) {
+			loadProject(id);
 		}
 	});
 

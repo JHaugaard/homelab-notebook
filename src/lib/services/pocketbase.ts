@@ -6,6 +6,9 @@ import type { Entry, Project, Tag, EntryFormData, ProjectFormData, TagFormData }
 // Initialize PocketBase client
 export const pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 
+// Export the base URL for file access
+export const pocketbaseUrl = PUBLIC_POCKETBASE_URL;
+
 // Disable auto-cancellation for better UX
 pb.autoCancellation(false);
 
@@ -50,14 +53,82 @@ export const entryService = {
 	},
 
 	async create(data: EntryFormData): Promise<Entry> {
+		// If there are file attachments, use FormData
+		if (data.attachments && data.attachments.length > 0) {
+			const formData = new FormData();
+			formData.append('mode', data.mode);
+			formData.append('title', data.title);
+			formData.append('content', data.content);
+			formData.append('archived', 'false');
+
+			if (data.url) formData.append('url', data.url);
+			if (data.language) formData.append('language', data.language);
+			if (data.project) formData.append('project', data.project);
+			if (data.promoted_from) formData.append('promoted_from', data.promoted_from);
+
+			// Tags are a relation array
+			data.tags.forEach((tag) => formData.append('tags', tag));
+
+			// Linked entries
+			data.linked_entries?.forEach((entry) => formData.append('linked_entries', entry));
+
+			// Append each file
+			data.attachments.forEach((file) => {
+				formData.append('attachments', file);
+			});
+
+			return await pb.collection(collections.entries).create<Entry>(formData);
+		}
+
+		// No attachments, use regular object
+		const { attachments, ...rest } = data;
 		return await pb.collection(collections.entries).create<Entry>({
-			...data,
+			...rest,
 			archived: false
 		});
 	},
 
 	async update(id: string, data: Partial<EntryFormData>): Promise<Entry> {
-		return await pb.collection(collections.entries).update<Entry>(id, data);
+		// If there are new file attachments, use FormData
+		if (data.attachments && data.attachments.length > 0) {
+			const formData = new FormData();
+
+			if (data.mode) formData.append('mode', data.mode);
+			if (data.title) formData.append('title', data.title);
+			if (data.content !== undefined) formData.append('content', data.content);
+			if (data.url !== undefined) formData.append('url', data.url || '');
+			if (data.language !== undefined) formData.append('language', data.language || '');
+			if (data.project !== undefined) formData.append('project', data.project || '');
+			if (data.promoted_from) formData.append('promoted_from', data.promoted_from);
+
+			// Tags are a relation array
+			data.tags?.forEach((tag) => formData.append('tags', tag));
+
+			// Linked entries
+			data.linked_entries?.forEach((entry) => formData.append('linked_entries', entry));
+
+			// Append each new file
+			data.attachments.forEach((file) => {
+				formData.append('attachments', file);
+			});
+
+			return await pb.collection(collections.entries).update<Entry>(id, formData);
+		}
+
+		// No new attachments, use regular object
+		const { attachments, ...rest } = data;
+		return await pb.collection(collections.entries).update<Entry>(id, rest);
+	},
+
+	async removeAttachment(id: string, filename: string): Promise<Entry> {
+		// To remove a file in PocketBase, set the field to the remaining files
+		const entry = await this.getById(id);
+		const remainingAttachments = entry.attachments.filter((f) => f !== filename);
+
+		// PocketBase requires setting 'attachments-' to remove files
+		return await pb.collection(collections.entries).update<Entry>(id, {
+			'attachments-': [filename]
+		});
 	},
 
 	async archive(id: string): Promise<Entry> {

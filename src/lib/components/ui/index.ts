@@ -5,3 +5,5 @@ export { default as Modal } from './Modal.svelte';
 export { default as Skeleton } from './Skeleton.svelte';
 export { default as EmptyState } from './EmptyState.svelte';
 export { default as ErrorBanner } from './ErrorBanner.svelte';
+export { default as AttachmentDropZone } from './AttachmentDropZone.svelte';
+export { default as AttachmentList } from './AttachmentList.svelte';

@@ -4,10 +4,11 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { AppShell, Toast } from '$lib/components/layout';
-	import { entries, projects, tags, showGlobalSearch, showQuickCapture, toasts } from '$lib/stores';
+	import { entries, projects, tags, showGlobalSearch, showQuickCapture, showNewProjectModal, toasts } from '$lib/stores';
 	import { isMac } from '$lib/utils';
 	import GlobalSearch from '$lib/components/nav/GlobalSearch.svelte';
 	import QuickCaptureModal from '$lib/components/features/QuickCaptureModal.svelte';
+	import NewProjectModal from '$lib/components/features/NewProjectModal.svelte';
 
 	interface Props {
 		children: Snippet;
@@ -53,6 +54,8 @@
 				$showGlobalSearch = false;
 			} else if ($showQuickCapture) {
 				$showQuickCapture = false;
+			} else if ($showNewProjectModal) {
+				$showNewProjectModal = false;
 			}
 		}
 	}
@@ -67,6 +70,7 @@
 <!-- Global modals -->
 <GlobalSearch />
 <QuickCaptureModal />
+<NewProjectModal />
 
 <!-- Toast notifications -->
 <Toast />

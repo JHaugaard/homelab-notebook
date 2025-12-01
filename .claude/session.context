@@ -1,7 +1,7 @@
 # Session Context - Homelab Notebook
 
-**Last Updated:** 2025-12-01
-**Session Purpose:** UI Redesign - Notion-inspired sidebar layout
+**Last Updated:** 2025-12-01 (Late Evening)
+**Session Purpose:** UI Enhancements & File Attachments Feature
 
 ---
 
@@ -12,9 +12,14 @@
 | Project Brief v2 | COMPLETE | .docs/homelab-notebook-brief-v1.md |
 | UI/UX Redesign | COMPLETE | .docs/ui-ux-redesign-v2.md |
 | Migration Phase 1-6 | COMPLETE | Core structure, features, polish |
-| PocketBase Setup | COMPLETE | Collections created, API rules configured |
+| PocketBase Setup | COMPLETE | Collections on production VPS |
 | App Init Fix | COMPLETE | Fixed SSR hydration blocking issue |
 | UI Refresh | COMPLETE | Notion-inspired sidebar layout with mobile support |
+| Deployment Strategy | COMPLETE | .docs/deployment-strategy-updated.md |
+| Production PocketBase | COMPLETE | Connected to pocketbase.haugaard.dev |
+| Dependency Fix | COMPLETE | Resolved vite version conflict |
+| File Attachments | COMPLETE | Components ready, needs PocketBase field |
+| Search Relocation | COMPLETE | Moved to Header center |
 
 **Mode:** DELIVERY (practical utility focus)
 
@@ -22,124 +27,79 @@
 
 ## Current State
 
-### Today's Session (2025-12-01) - UI Redesign
+### Latest Session (2025-12-01 Late Evening) - UI & Attachments
 
-#### Changes Made
+#### Features Implemented
 
-1. **New Sidebar Layout** - Redesigned with:
-   - Mode navigation (Research/Project/Reference) with subtle color-coded icons
-   - Collapsible Projects section (shows 5 most recent)
-   - Collapsible Recent entries section (shows 4 most recent)
-   - Quick Access (Tags, Archived)
-   - Search footer with ⌘K hint
-   - Mobile responsive with hamburger menu and slide-out drawer
+1. **File Attachments Feature**
+   - Added `attachments` field to Entry type
+   - Created `AttachmentDropZone` component (drag/drop + browse)
+   - Created `AttachmentList` component (view/download existing)
+   - Updated entry service for FormData file uploads
+   - Supports PDF, DOCX, XLSX, images with type icons
 
-2. **Dashboard Redesign** - Clean welcome card + mode cards layout:
-   - Welcome message with entry/project count
-   - Three mode cards with descriptions and entry counts
-   - Subtle hover effects with mode-colored borders
+2. **Form Layout Improvements**
+   - Project selector: Narrower (`max-w-xs`)
+   - Tags & Attachments: Side-by-side grid layout
+   - Cleaner visual hierarchy
 
-3. **Typography & Theme** - Notion-inspired styling:
-   - System sans-serif throughout (SF Pro on Mac)
-   - Warm gray text (`#37352f`)
-   - Subtle borders (`rgba(55, 53, 47, 0.09)`)
-   - Mode colors: Blue (research), Orange (project), Teal (reference)
-   - Notion-style shadows and focus states
+3. **Search Relocated to Header**
+   - Moved from sidebar footer to Header center
+   - Keyboard shortcut hint preserved (⌘K)
+   - Removed duplicate from sidebar
 
-4. **Mobile Support** - Full responsive design:
-   - Hamburger menu in mobile header
-   - Slide-out sidebar with backdrop
-   - Auto-close sidebar on navigation
+4. **Project Navigation Fix**
+   - Fixed sidebar project links not updating main view
+   - Changed `onMount` to `$effect` for reactive data loading
+
+#### Files Created
+- `src/lib/components/ui/AttachmentDropZone.svelte`
+- `src/lib/components/ui/AttachmentList.svelte`
 
 #### Files Modified
-
-- `src/app.css` - Complete theme overhaul (Notion-inspired)
-- `src/lib/components/layout/Sidebar.svelte` - New sidebar with all sections
-- `src/lib/components/layout/AppShell.svelte` - Mobile menu support
-- `src/lib/components/layout/Header.svelte` - Updated styling
-- `src/routes/+page.svelte` - New dashboard layout
-
----
-
-## Design System
-
-### Colors (CSS Variables)
-
-```css
-/* Text */
---color-text: #37352f;
---color-text-muted: #9b9a97;
-
-/* Surfaces */
---color-background-secondary: #fbfbfa;
---color-surface-hover: #f7f6f3;
-
-/* Mode Colors */
---color-mode-research: #2383e2;    /* Blue */
---color-mode-project: #d9730d;     /* Orange */
---color-mode-reference: #0f7b6c;   /* Teal */
-
-/* Primary */
---color-primary: #2383e2;          /* Notion blue */
-```
-
-### Typography
-
-- **Font**: System sans-serif stack (`ui-sans-serif, -apple-system...`)
-- **Headers**: font-weight 600, letter-spacing -0.02em
-- **Body**: 14px base, line-height 1.5
-- **Numbers**: `.tabular-nums` class for aligned figures
-
----
-
-## What's Built
-
-### Three-Mode Architecture
-- **Research Mode** (`/research`) - Resource collection, URLs, links
-- **Project Mode** (`/project`) - Developer journal with timeline view
-- **Reference Mode** (`/reference`) - Polished documentation/tutorials
-
-### Core Features
-- Mode promotion workflow (move/copy entries between modes)
-- Cross-entry linking system
-- FlexSearch-powered instant search (⌘K)
-- Quick capture modal (⌘N)
-- Project timeline with date groupings
-- Toast notifications
-- View preferences (persisted to localStorage)
-
-### Routes
-- `/` - Dashboard with mode overview
-- `/research`, `/project`, `/reference` - Mode views with CRUD
-- `/projects`, `/projects/[id]` - Project management
-- `/tags` - Tag management
-- `/recent` - Recent entries
-- `/archived` - Archived entries
-- `/settings` - View preferences
+- `src/lib/types/index.ts` - Added attachments field
+- `src/lib/services/pocketbase.ts` - FormData upload support
+- `src/lib/components/ui/index.ts` - Export new components
+- `src/lib/components/layout/Header.svelte` - Added search bar
+- `src/lib/components/layout/Sidebar.svelte` - Removed search
+- `src/routes/research/new/+page.svelte` - New layout
+- `src/routes/project/new/+page.svelte` - New layout
+- `src/routes/reference/new/+page.svelte` - New layout
+- `src/routes/projects/[id]/+page.svelte` - Fixed navigation
 
 ---
 
 ## Configuration
 
-- **PocketBase instance**: Running on port 8095
-- **ENV**: `PUBLIC_POCKETBASE_URL=http://localhost:8095` in `.env.local`
-- **API Rules**: All collections have empty rules (public access for dev)
-- **PocketBase Admin**: http://localhost:8095/_/
+### Local Development (Both Machines)
+- **PocketBase**: Production instance at `https://pocketbase.haugaard.dev`
+- **ENV**: `PUBLIC_POCKETBASE_URL=https://pocketbase.haugaard.dev` in `.env.local`
+- **API Rules**: All collections have empty rules (public access)
+- **PocketBase Admin**: https://pocketbase.haugaard.dev/_/
+
+### Production (VPS - Hostinger)
+- **VPS**: 72.60.27.146 (8 cores, 32GB RAM)
+- **PocketBase**: pocketbase.haugaard.dev (existing instance)
+- **Frontend**: To be deployed at notebook.haugaard.dev
+- **Reverse Proxy**: Caddy with automatic HTTPS
 
 ---
 
-## Known Issues
+## PocketBase Setup Required
 
-1. **Vite version conflict** - TypeScript error in vite.config.ts (pre-existing, doesn't affect runtime)
-2. **GlobalSearch warning** - `inputEl` not declared with `$state()` (Svelte 5 warning, non-blocking)
+Add `attachments` field to `entries` collection:
+- **Field type**: File
+- **Max select**: Multiple
+- **Max size**: 10MB
+- **Allowed types**: (optional) `application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.*`
 
 ---
 
 ## Next Actions
 
-1. Test full CRUD operations with PocketBase
-2. Add sample data to test UI
-3. Deploy to production (notebook.haugaard.dev)
+1. Add `attachments` field to PocketBase `entries` collection
+2. Test file upload/download functionality
+3. Deploy frontend to VPS (notebook.haugaard.dev)
 
 ---
 
@@ -147,6 +107,7 @@
 
 - `.docs/homelab-notebook-brief-v1.md` - Project brief
 - `.docs/ui-ux-redesign-v2.md` - UI/UX specification
+- `.docs/deployment-strategy-updated.md` - Deployment plan
 - `CLAUDE.md` - Project documentation
 - `src/lib/types/index.ts` - TypeScript types and mode configs
 - `src/app.css` - Theme and design system

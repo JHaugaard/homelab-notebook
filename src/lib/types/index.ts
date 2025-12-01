@@ -15,6 +15,7 @@ export interface Entry {
 	tags: string[];
 	linked_entries: string[];
 	promoted_from?: string;
+	attachments: string[]; // File names stored in PocketBase
 	archived: boolean;
 	created: string;
 	updated: string;
@@ -56,6 +57,7 @@ export interface EntryFormData {
 	tags: string[];
 	linked_entries?: string[];
 	promoted_from?: string;
+	attachments?: File[]; // Files to upload
 }
 
 export interface ProjectFormData {

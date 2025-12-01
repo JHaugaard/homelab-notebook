@@ -39,10 +39,10 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard | Homelab Notebook</title>
+	<title>Haugaard Homelab | Homelab Notebook</title>
 </svelte:head>
 
-<Header title="Dashboard">
+<Header title="Haugaard Homelab">
 	{#snippet actions()}
 		<Button variant="primary" onclick={() => ($showQuickCapture = true)}>
 			<Plus class="w-4 h-4" />
@@ -94,7 +94,7 @@
 
 		<!-- Mode Cards -->
 		<section>
-			<h3 class="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
+			<h3 class="text-sm font-semibold text-[var(--color-text-muted)] tracking-wider mb-4">
 				Browse by Mode
 			</h3>
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -8,7 +8,6 @@
 		Tags,
 		Archive,
 		Plus,
-		Search,
 		FolderKanban,
 		ChevronDown,
 		FlaskConical,
@@ -18,12 +17,10 @@
 		entryCounts,
 		visibleProjects,
 		recentEntries,
-		showGlobalSearch,
 		showNewProjectModal,
 		sidebarOpen
 	} from '$lib/stores';
 	import { MODE_CONFIGS, STATUS_CONFIGS } from '$lib/types';
-	import { getModifierKey, formatRelativeTime } from '$lib/utils';
 
 	const modeIcons = {
 		research: BookOpen,
@@ -100,7 +97,7 @@
 	<div class="flex-1 overflow-y-auto py-4">
 		<!-- Modes Section -->
 		<div class="px-3 mb-6">
-			<h3 class="px-3 mb-2 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
+			<h3 class="px-3 mb-2 text-[11px] font-semibold text-[var(--color-text-muted)] tracking-wider">
 				Modes
 			</h3>
 			<nav class="space-y-0.5">
@@ -137,7 +134,7 @@
 		<div class="px-3 mb-6">
 			<div class="flex items-center gap-2 px-3 mb-2">
 				<button
-					class="flex items-center gap-2 flex-1 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider hover:text-[var(--color-text-secondary)]"
+					class="flex items-center gap-2 flex-1 text-[11px] font-semibold text-[var(--color-text-muted)] tracking-wider hover:text-[var(--color-text-secondary)]"
 					onclick={() => (projectsExpanded = !projectsExpanded)}
 				>
 					<ChevronDown
@@ -205,7 +202,7 @@
 		<div class="px-3 mb-6">
 			<div class="flex items-center gap-2 px-3 mb-2">
 				<button
-					class="flex items-center gap-2 flex-1 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider hover:text-[var(--color-text-secondary)]"
+					class="flex items-center gap-2 flex-1 text-[11px] font-semibold text-[var(--color-text-muted)] tracking-wider hover:text-[var(--color-text-secondary)]"
 					onclick={() => (recentExpanded = !recentExpanded)}
 				>
 					<ChevronDown
@@ -247,7 +244,7 @@
 
 		<!-- Quick Access Section -->
 		<div class="px-3">
-			<h3 class="px-3 mb-2 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
+			<h3 class="px-3 mb-2 text-[11px] font-semibold text-[var(--color-text-muted)] tracking-wider">
 				Quick Access
 			</h3>
 			<nav class="space-y-0.5">
@@ -281,23 +278,4 @@
 		</div>
 	</div>
 
-	<!-- Search footer -->
-	<div class="px-4 py-3 border-t border-[var(--color-border-subtle)]">
-		<button
-			class="
-				w-full flex items-center gap-3 px-3 py-2.5
-				rounded-lg text-sm text-[var(--color-text-muted)]
-				bg-[var(--color-surface)] border border-[var(--color-border)]
-				hover:border-[var(--color-border-strong)] hover:text-[var(--color-text-secondary)]
-				transition-colors
-			"
-			onclick={() => ($showGlobalSearch = true)}
-		>
-			<Search class="w-4 h-4" />
-			<span class="flex-1 text-left">Search...</span>
-			<kbd class="text-[10px] font-sans font-medium bg-[var(--color-surface-hover)] text-[var(--color-text-muted)] px-1.5 py-0.5 rounded border border-[var(--color-border)]">
-				{getModifierKey()}K
-			</kbd>
-		</button>
-	</div>
 </aside>

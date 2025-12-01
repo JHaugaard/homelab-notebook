@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Header } from '$lib/components/layout';
-	import { Button, Input } from '$lib/components/ui';
+	import { Button, Input, AttachmentDropZone } from '$lib/components/ui';
 	import { entries, tags, projects, toasts } from '$lib/stores';
 	import type { EntryFormData } from '$lib/types';
 	import TagInput from '$lib/components/editor/TagInput.svelte';
@@ -11,6 +11,7 @@
 	let content = $state('');
 	let selectedTags = $state<string[]>([]);
 	let selectedProject = $state<string | undefined>(undefined);
+	let attachmentFiles = $state<File[]>([]);
 	let isSubmitting = $state(false);
 
 	async function handleSubmit() {
@@ -27,7 +28,8 @@
 				title: title.trim(),
 				content: content.trim(),
 				tags: selectedTags,
-				project: selectedProject
+				project: selectedProject,
+				attachments: attachmentFiles.length > 0 ? attachmentFiles : undefined
 			};
 
 			const entry = await entries.create(data);
@@ -61,8 +63,8 @@
 
 <div class="flex-1 overflow-y-auto p-6">
 	<div class="max-w-2xl mx-auto space-y-6">
-		<!-- Project (first for context) -->
-		<div>
+		<!-- Project (narrower) -->
+		<div class="max-w-xs">
 			<label for="project" class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
 				Project
 			</label>
@@ -106,12 +108,23 @@
 			/>
 		</div>
 
-		<!-- Tags -->
-		<div>
-			<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
-				Tags
-			</label>
-			<TagInput bind:selectedTags availableTags={$tags} />
+		<!-- Tags and Attachments side by side -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<!-- Tags -->
+			<div>
+				<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+					Tags
+				</label>
+				<TagInput bind:selectedTags availableTags={$tags} />
+			</div>
+
+			<!-- Attachments -->
+			<div>
+				<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+					Attachments
+				</label>
+				<AttachmentDropZone bind:files={attachmentFiles} />
+			</div>
 		</div>
 	</div>
 </div>

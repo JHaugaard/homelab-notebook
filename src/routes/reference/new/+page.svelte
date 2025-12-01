@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Header } from '$lib/components/layout';
-	import { Button, Input } from '$lib/components/ui';
+	import { Button, Input, AttachmentDropZone } from '$lib/components/ui';
 	import { entries, tags, projects, toasts } from '$lib/stores';
 	import type { EntryFormData } from '$lib/types';
 	import TagInput from '$lib/components/editor/TagInput.svelte';
@@ -11,6 +11,7 @@
 	let content = $state('');
 	let selectedTags = $state<string[]>([]);
 	let selectedProject = $state<string | undefined>(undefined);
+	let attachmentFiles = $state<File[]>([]);
 	let isSubmitting = $state(false);
 
 	const templateContent = `## Overview
@@ -61,7 +62,8 @@ Key takeaways from this guide.
 				title: title.trim(),
 				content: content.trim(),
 				tags: selectedTags,
-				project: selectedProject
+				project: selectedProject,
+				attachments: attachmentFiles.length > 0 ? attachmentFiles : undefined
 			};
 
 			const entry = await entries.create(data);
@@ -136,7 +138,25 @@ Key takeaways from this guide.
 			/>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<!-- Project (narrower) -->
+		<div class="max-w-xs">
+			<label for="project" class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+				Project
+			</label>
+			<select
+				id="project"
+				bind:value={selectedProject}
+				class="w-full px-3 py-2 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md focus:outline-none focus:border-[var(--color-border-strong)]"
+			>
+				<option value={undefined}>No project</option>
+				{#each $projects as project}
+					<option value={project.id}>{project.name}</option>
+				{/each}
+			</select>
+		</div>
+
+		<!-- Tags and Attachments side by side -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 			<!-- Tags -->
 			<div>
 				<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
@@ -145,21 +165,12 @@ Key takeaways from this guide.
 				<TagInput bind:selectedTags availableTags={$tags} />
 			</div>
 
-			<!-- Project -->
+			<!-- Attachments -->
 			<div>
-				<label for="project" class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
-					Project (optional)
+				<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+					Attachments
 				</label>
-				<select
-					id="project"
-					bind:value={selectedProject}
-					class="w-full px-3 py-2 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md focus:outline-none focus:border-[var(--color-border-strong)]"
-				>
-					<option value={undefined}>No project</option>
-					{#each $projects as project}
-						<option value={project.id}>{project.name}</option>
-					{/each}
-				</select>
+				<AttachmentDropZone bind:files={attachmentFiles} />
 			</div>
 		</div>
 	</div>
