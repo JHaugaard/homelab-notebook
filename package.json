@@ -51,8 +51,10 @@
     "@codemirror/lang-python": "^6.1.0",
     "@codemirror/lang-yaml": "^6.1.0",
     "@codemirror/theme-one-dark": "^6.1.0",
+    "carta-md": "^4.11.1",
     "codemirror": "^6.0.0",
     "flexsearch": "^0.7.43",
+    "isomorphic-dompurify": "^2.33.0",
     "lucide-svelte": "^0.468.0",
     "pocketbase": "^0.22.0"
   }
