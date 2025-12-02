@@ -1,7 +1,7 @@
 # Session Context - Homelab Notebook
 
-**Last Updated:** 2025-12-01 (Late Evening)
-**Session Purpose:** UI Enhancements & File Attachments Feature
+**Last Updated:** 2025-12-01 (Night)
+**Session Purpose:** Carta Markdown Editor Integration
 
 ---
 
@@ -20,6 +20,7 @@
 | Dependency Fix | COMPLETE | Resolved vite version conflict |
 | File Attachments | COMPLETE | Components ready, needs PocketBase field |
 | Search Relocation | COMPLETE | Moved to Header center |
+| Carta Editor | COMPLETE | On `editor` branch, ready to merge |
 
 **Mode:** DELIVERY (practical utility focus)
 
@@ -27,7 +28,22 @@
 
 ## Current State
 
-### Latest Session (2025-12-01 Late Evening) - UI & Attachments
+### Latest Session (2025-12-01 Night) - Carta Editor
+
+#### Carta Markdown Editor (`editor` branch)
+- Replaced basic textarea/preview with Carta markdown editor
+- Added `carta-md` (4.11.1) and `isomorphic-dompurify` for XSS protection
+- Tabs mode (Write / Preview) with live rendering
+- Themed to match app CSS variables
+- Same `bind:value` API — drop-in replacement
+- **Commit**: `48c17b8`
+
+#### Pending (tracked in `.claude/todo.md`)
+- Upgrade vitest to v4 (resolves vite version conflict in `pnpm check`)
+
+---
+
+### Previous Session (2025-12-01 Late Evening) - UI & Attachments
 
 #### Features Implemented
 
@@ -97,9 +113,11 @@ Add `attachments` field to `entries` collection:
 
 ## Next Actions
 
-1. Add `attachments` field to PocketBase `entries` collection
-2. Test file upload/download functionality
-3. Deploy frontend to VPS (notebook.haugaard.dev)
+1. Merge `editor` branch to `main`
+2. Add `attachments` field to PocketBase `entries` collection
+3. Test file upload/download functionality
+4. Deploy frontend to VPS (notebook.haugaard.dev)
+5. Upgrade vitest to v4 (on main)
 
 ---
 

@@ -221,6 +221,67 @@ For a personal utility app, Fly.io's built-in monitoring is sufficient. No need 
 
 ---
 
+## File Attachment Storage Decision
+
+**Decision Date:** 2025-12-01
+**Recommendation:** Fly.io Tigris (S3-compatible object storage)
+
+### Context
+
+Evaluated three options for storing file attachments (PDFs, documents):
+1. **Fly.io Volumes** (block storage) - Zero config, but requires manual backups
+2. **Fly.io Tigris** (S3-compatible) - Minimal setup, fully managed
+3. **Backblaze B2** (external S3-compatible) - Cheapest at scale, excellent with Cloudflare
+
+### Decision: Tigris
+
+**Why Tigris over Volumes:**
+- Eliminates backup responsibility (Tigris handles durability)
+- Setup cost is trivial (~4 environment variables)
+- Learns a portable S3 pattern reusable across projects
+- Already CDN-ready if needs grow
+- Latency difference imperceptible for occasional PDF downloads
+
+**Why Tigris over B2 (for now):**
+- Co-located with Fly.io = lowest latency
+- Simpler setup (no external account coordination)
+- Cost difference irrelevant at low volume
+
+### Migration Path to B2
+
+If storage volume grows significantly, migration to Backblaze B2 is trivial:
+1. Create B2 bucket
+2. Copy files with `rclone sync`
+3. Update 4 env vars to B2 endpoint
+4. Redeploy
+
+B2 is ~10x cheaper per GB and has free egress via Cloudflare Bandwidth Alliance.
+
+### PocketBase Role
+
+PocketBase remains the core backend for:
+- Authentication
+- Database (entries, projects, tags)
+- API and file metadata
+- Orchestrating file uploads/downloads
+
+Tigris is simply the storage location for actual file bytes.
+
+### Configuration (for deploy-guide)
+
+```toml
+# fly.toml
+[env]
+S3_ENDPOINT = "https://fly.storage.tigris.dev"
+S3_BUCKET = "homelab-notebook-files"
+S3_REGION = "auto"
+
+# Set via fly secrets:
+# fly secrets set S3_ACCESS_KEY="..." S3_SECRET="..."
+```
+
+---
+
 ## Next Steps
 
 **Handoff document created:** `.docs/deployment-strategy-updated.md`
