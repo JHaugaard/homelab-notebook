@@ -32,6 +32,11 @@ COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+
+# Build-time env vars for SvelteKit static imports
+ARG PUBLIC_POCKETBASE_URL=https://pocketbase.haugaard.dev
+ENV PUBLIC_POCKETBASE_URL=$PUBLIC_POCKETBASE_URL
+
 RUN pnpm build
 
 # Production stage
