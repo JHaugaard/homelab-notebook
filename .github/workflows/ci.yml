@@ -14,6 +14,8 @@ jobs:
   test:
     name: Test & Build
     runs-on: ubuntu-latest
+    env:
+      PUBLIC_POCKETBASE_URL: https://pocketbase.haugaard.dev
 
     steps:
       - name: Checkout code
