@@ -4,6 +4,7 @@
 	import {
 		ArrowLeft,
 		Edit,
+		Trash2,
 		BookOpen,
 		Wrench,
 		FileText,
@@ -14,8 +15,9 @@
 		Plus
 	} from 'lucide-svelte';
 	import { Header } from '$lib/components/layout';
-	import { Button, Badge } from '$lib/components/ui';
-	import { projects, entries, toasts } from '$lib/stores';
+	import { Button, Badge, Modal } from '$lib/components/ui';
+	import { EditProjectModal } from '$lib/components/features';
+	import { projects, entries, toasts, editProjectId } from '$lib/stores';
 	import { projectService, entryService } from '$lib/services/pocketbase';
 	import { STATUS_CONFIGS, MODE_CONFIGS, type Project, type Entry, type ProjectStatus } from '$lib/types';
 	import { formatDate, formatRelativeTime } from '$lib/utils';
@@ -23,6 +25,7 @@
 	let project = $state<Project | null>(null);
 	let projectEntries = $state<Entry[]>([]);
 	let loading = $state(true);
+	let showDeleteModal = $state(false);
 
 	const id = $derived($page.params.id);
 
@@ -75,6 +78,19 @@
 			toasts.error('Failed to update project');
 		}
 	}
+
+	async function handleDelete() {
+		if (!project) return;
+
+		try {
+			await projects.delete(project.id);
+			toasts.success('Project deleted');
+			goto('/projects');
+		} catch (error) {
+			console.error('Failed to delete project:', error);
+			toasts.error('Failed to delete project');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -115,6 +131,13 @@
 					Complete
 				</Button>
 			{/if}
+			<Button variant="secondary" onclick={() => ($editProjectId = currentProject.id)}>
+				<Edit class="w-4 h-4" />
+				Edit
+			</Button>
+			<Button variant="ghost" onclick={() => (showDeleteModal = true)}>
+				<Trash2 class="w-4 h-4 text-red-500" />
+			</Button>
 		{/snippet}
 	</Header>
 
@@ -205,4 +228,21 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Edit Project Modal -->
+	<EditProjectModal />
+
+	<!-- Delete confirmation modal -->
+	<Modal open={showDeleteModal} title="Delete Project" onclose={() => (showDeleteModal = false)}>
+		<p class="text-sm text-[var(--color-text-secondary)]">
+			Are you sure you want to delete "{currentProject.name}"? Entries associated with this project will not be deleted, but will no longer be linked to any project.
+		</p>
+
+		{#snippet footer()}
+			<div class="flex justify-end gap-2">
+				<Button variant="ghost" onclick={() => (showDeleteModal = false)}>Cancel</Button>
+				<Button variant="danger" onclick={handleDelete}>Delete</Button>
+			</div>
+		{/snippet}
+	</Modal>
 {/if}

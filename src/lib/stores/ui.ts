@@ -11,6 +11,7 @@ export const activeMode = writable<EntryMode | null>(null);
 export const showQuickCapture = writable(false);
 export const showGlobalSearch = writable(false);
 export const showNewProjectModal = writable(false);
+export const editProjectId = writable<string | null>(null);
 
 // Quick capture default mode
 export const quickCaptureMode = writable<EntryMode>('research');

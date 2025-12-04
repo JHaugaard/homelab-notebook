@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { Plus, FolderKanban, MoreVertical, Archive, Trash2 } from 'lucide-svelte';
+	import { Plus, FolderKanban, MoreVertical, Archive, Trash2, Edit } from 'lucide-svelte';
 	import { Header } from '$lib/components/layout';
 	import { Button, Badge, Modal } from '$lib/components/ui';
-	import { projects, showNewProjectModal, toasts } from '$lib/stores';
+	import { projects, showNewProjectModal, editProjectId, toasts } from '$lib/stores';
 	import { STATUS_CONFIGS, type ProjectStatus } from '$lib/types';
 	import { formatRelativeTime } from '$lib/utils';
 	import NewProjectModal from '$lib/components/features/NewProjectModal.svelte';
+	import EditProjectModal from '$lib/components/features/EditProjectModal.svelte';
 
 	let showArchived = $state(false);
 	let projectToDelete = $state<string | null>(null);
@@ -121,6 +122,14 @@
 										</button>
 
 										<div class="absolute right-0 mt-1 w-40 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+											<button
+												class="w-full px-3 py-2 text-left text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]"
+												onclick={() => ($editProjectId = project.id)}
+											>
+												<Edit class="w-3.5 h-3.5 inline mr-1.5" />
+												Edit
+											</button>
+											<hr class="my-1 border-[var(--color-border)]" />
 											{#if project.status !== 'active'}
 												<button
 													class="w-full px-3 py-2 text-left text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]"
@@ -190,6 +199,9 @@
 
 <!-- New Project Modal -->
 <NewProjectModal />
+
+<!-- Edit Project Modal -->
+<EditProjectModal />
 
 <!-- Delete confirmation modal -->
 <Modal
