@@ -10,15 +10,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const cookie = event.request.headers.get('cookie') || '';
 	event.locals.pb.authStore.loadFromCookie(cookie);
 
-	// Verify the auth token is still valid
-	try {
-		if (event.locals.pb.authStore.isValid) {
-			await event.locals.pb.collection('users').authRefresh();
-			event.locals.user = event.locals.pb.authStore.model;
-		}
-	} catch {
-		// Token is invalid, clear it
-		event.locals.pb.authStore.clear();
+	// Check if auth token is valid (without making a network call on every request)
+	// The token itself contains expiry info that PocketBase checks
+	if (event.locals.pb.authStore.isValid) {
+		event.locals.user = event.locals.pb.authStore.record;
+	} else {
 		event.locals.user = null;
 	}
 
