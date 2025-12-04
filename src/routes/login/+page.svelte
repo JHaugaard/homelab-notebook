@@ -16,7 +16,12 @@
 
 		try {
 			await pb.collection('users').authWithPassword(email, password);
-			goto('/');
+
+			// Set the auth cookie so the server can read it on subsequent requests
+			document.cookie = pb.authStore.exportToCookie({ httpOnly: false, secure: true, sameSite: 'Lax' });
+
+			// Use window.location for a full page reload to ensure server reads the new cookie
+			window.location.href = '/';
 		} catch (err) {
 			console.error('Login failed:', err);
 			error = 'Invalid email or password';
