@@ -1,4 +1,5 @@
 // Re-export all stores for convenient imports
+export * from './auth';
 export * from './entries';
 export * from './projects';
 export * from './tags';

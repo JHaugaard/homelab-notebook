@@ -11,14 +11,16 @@
 		FolderKanban,
 		ChevronDown,
 		FlaskConical,
-		X
+		X,
+		LogOut
 	} from 'lucide-svelte';
 	import {
 		entryCounts,
 		visibleProjects,
 		recentEntries,
 		showNewProjectModal,
-		sidebarOpen
+		sidebarOpen,
+		user
 	} from '$lib/stores';
 	import { MODE_CONFIGS, STATUS_CONFIGS } from '$lib/types';
 
@@ -278,4 +280,14 @@
 		</div>
 	</div>
 
+	<!-- User / Logout Section -->
+	<div class="px-3 py-3 border-t border-[var(--color-border-subtle)]">
+		<button
+			onclick={() => user.logout()}
+			class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+		>
+			<LogOut class="w-4 h-4 text-[var(--color-text-muted)]" />
+			<span>Sign out</span>
+		</button>
+	</div>
 </aside>
