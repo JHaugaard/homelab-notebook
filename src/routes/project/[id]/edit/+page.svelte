@@ -2,13 +2,13 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { ArrowLeft, Save, FolderOpen, Sparkles } from 'lucide-svelte';
+	import { ArrowLeft, Save, FolderOpen, Sparkles, Paperclip } from 'lucide-svelte';
 	import { Header } from '$lib/components/layout';
-	import { Button, Input } from '$lib/components/ui';
+	import { Button, Input, AttachmentDropZone, AttachmentList } from '$lib/components/ui';
 	import { TagInput, MarkdownEditor } from '$lib/components/editor';
 	import { entries, projects, toasts } from '$lib/stores';
 	import { entryService } from '$lib/services/pocketbase';
-	import type { Entry } from '$lib/types';
+	import type { Entry, Attachment } from '$lib/types';
 
 	let entry = $state<Entry | null>(null);
 	let loading = $state(true);
@@ -18,6 +18,7 @@
 	let content = $state('');
 	let selectedTags = $state<string[]>([]);
 	let selectedProject = $state('');
+	let attachments = $state<Attachment[]>([]);
 
 	const id = $derived($page.params.id);
 
@@ -34,6 +35,7 @@
 				content = entry.content || '';
 				selectedTags = entry.tags || [];
 				selectedProject = entry.project || '';
+				attachments = entry.attachments || [];
 			}
 		} catch (error) {
 			console.error('Failed to load entry:', error);
@@ -59,7 +61,8 @@
 				title: title.trim(),
 				content: content.trim() || undefined,
 				tags: selectedTags,
-				project: selectedProject || undefined
+				project: selectedProject || undefined,
+				attachments
 			});
 			toasts.success('Log entry updated');
 			goto(`/project/${id}`);
@@ -139,6 +142,41 @@
 					placeholder="Document your progress, notes, issues encountered..."
 					minHeight="250px"
 				/>
+			</div>
+
+			<!-- Attachments -->
+			<div>
+				<label class="block text-sm font-medium text-[var(--color-text)] mb-1.5">
+					<span class="flex items-center gap-1.5">
+						<Paperclip class="w-4 h-4" />
+						Attachments
+					</span>
+				</label>
+
+				{#if attachments.length > 0}
+					<div class="mb-3">
+						<AttachmentList
+							{attachments}
+							editable
+							onRemove={(attachment) => {
+								attachments = attachments.filter(a => a.key !== attachment.key);
+								fetch('/api/attachments/delete', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ key: attachment.key })
+								}).catch(console.error);
+							}}
+						/>
+					</div>
+				{/if}
+
+				{#if id}
+					<AttachmentDropZone
+						entryId={id}
+						bind:uploadedFiles={attachments}
+						onFilesChange={(files) => attachments = files}
+					/>
+				{/if}
 			</div>
 
 			<!-- Submit -->

@@ -15,9 +15,20 @@ Add these secrets in your repository settings:
 
 ### Storage Secrets
 
-**Storage Type:** None (no file uploads configured)
+**Storage Type:** Tigris (S3-compatible, Fly.io managed)
 
-No additional secrets required for storage.
+| Secret Name | Description | How to Obtain |
+|-------------|-------------|---------------|
+| `AWS_ACCESS_KEY_ID` | Tigris access key | Auto-set by `fly storage create` |
+| `AWS_SECRET_ACCESS_KEY` | Tigris secret key | Auto-set by `fly storage create` |
+| `AWS_ENDPOINT_URL_S3` | Tigris endpoint | Auto-set (https://fly.storage.tigris.dev) |
+| `AWS_REGION` | Storage region | Auto-set (auto) |
+| `BUCKET_NAME` | Storage bucket name | Auto-set (homelab-notebook-files) |
+
+These secrets are automatically configured when you create a Tigris bucket:
+```bash
+fly storage create --app homelab-notebook --name homelab-notebook-files --public
+```
 
 ---
 

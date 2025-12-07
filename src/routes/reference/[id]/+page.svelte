@@ -2,9 +2,9 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { Edit, Trash2, ArrowLeft, FolderOpen, Calendar, Clock, Link2, ArrowUp } from 'lucide-svelte';
+	import { Edit, Trash2, ArrowLeft, FolderOpen, Calendar, Clock, Link2, ArrowUp, Paperclip } from 'lucide-svelte';
 	import { Header } from '$lib/components/layout';
-	import { Button, Badge, Modal } from '$lib/components/ui';
+	import { Button, Badge, Modal, AttachmentList } from '$lib/components/ui';
 	import { PromoteEntryModal, LinkEntriesModal } from '$lib/components/features';
 	import { entries, toasts } from '$lib/stores';
 	import { entryService } from '$lib/services/pocketbase';
@@ -153,6 +153,17 @@
 				</div>
 			{:else}
 				<p class="text-[var(--color-text-muted)] italic">No content</p>
+			{/if}
+
+			<!-- Attachments -->
+			{#if entry.attachments && entry.attachments.length > 0}
+				<div class="mt-8 pt-6 border-t border-[var(--color-border)]">
+					<h3 class="flex items-center gap-2 text-sm font-medium text-[var(--color-text)] mb-3">
+						<Paperclip class="w-4 h-4" />
+						Attachments ({entry.attachments.length})
+					</h3>
+					<AttachmentList attachments={entry.attachments} />
+				</div>
 			{/if}
 
 			<!-- Related project notes -->

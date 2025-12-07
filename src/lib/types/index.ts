@@ -4,6 +4,14 @@ export type EntryMode = 'research' | 'project' | 'reference';
 export type ProjectStatus = 'active' | 'paused' | 'completed' | 'archived';
 export type TagCategory = 'technology' | 'concept' | 'infrastructure' | 'other';
 
+// Attachment stored in Tigris, metadata in PocketBase
+export interface Attachment {
+	key: string; // Tigris storage key (e.g., entries/{entryId}/{timestamp}-{filename})
+	publicUrl: string; // Direct URL to file
+	filename: string; // Original filename
+	size?: number; // File size in bytes
+}
+
 export interface Entry {
 	id: string;
 	mode: EntryMode;
@@ -15,7 +23,7 @@ export interface Entry {
 	tags: string[];
 	linked_entries: string[];
 	promoted_from?: string;
-	attachments: string[]; // File names stored in PocketBase
+	attachments: Attachment[]; // Tigris file metadata (stored as JSON in PocketBase)
 	archived: boolean;
 	created: string;
 	updated: string;
@@ -57,7 +65,7 @@ export interface EntryFormData {
 	tags: string[];
 	linked_entries?: string[];
 	promoted_from?: string;
-	attachments?: File[]; // Files to upload
+	attachments?: Attachment[]; // Tigris attachment metadata
 }
 
 export interface ProjectFormData {
