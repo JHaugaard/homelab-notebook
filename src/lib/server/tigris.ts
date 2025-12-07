@@ -32,7 +32,8 @@ const s3Client = new S3Client({
 	credentials: {
 		accessKeyId: AWS_ACCESS_KEY_ID,
 		secretAccessKey: AWS_SECRET_ACCESS_KEY
-	}
+	},
+	forcePathStyle: false // Use virtual-hosted-style URLs (bucket.endpoint)
 });
 
 // Export bucket name for URL construction
@@ -66,10 +67,12 @@ export function getFilenameFromKey(key: string): string {
 
 /**
  * Get the public URL for a file
- * Since the bucket is public-read, we can construct direct URLs
+ * Uses virtual-hosted-style URL: https://bucket.endpoint/key
  */
 export function getPublicUrl(key: string): string {
-	return `${AWS_ENDPOINT_URL_S3}/${BUCKET_NAME}/${key}`;
+	// Extract the host from the endpoint (e.g., fly.storage.tigris.dev from https://fly.storage.tigris.dev)
+	const endpointUrl = new URL(AWS_ENDPOINT_URL_S3);
+	return `${endpointUrl.protocol}//${BUCKET_NAME}.${endpointUrl.host}/${key}`;
 }
 
 /**
