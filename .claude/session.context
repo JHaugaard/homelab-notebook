@@ -1,7 +1,7 @@
 # Session Context - Homelab Notebook
 
-**Last Updated:** 2025-12-03
-**Session Purpose:** Authentication & Infrastructure Cleanup
+**Last Updated:** 2025-12-07
+**Session Purpose:** Tigris Storage Integration
 
 ---
 
@@ -25,7 +25,7 @@
 | **Authentication** | **COMPLETE** | Login page, server-side guards, logout |
 | **PocketBase Migration** | **COMPLETE** | Collections on Fly.io PocketBase |
 | **Infrastructure Cleanup** | **COMPLETE** | Removed VPS references |
-| **Tigris Storage** | **PENDING** | Required for persistent file attachments |
+| **Tigris Storage** | **COMPLETE** | Presigned URL uploads, JSON metadata in PocketBase |
 
 **Mode:** DELIVERY (practical utility focus)
 
@@ -33,7 +33,63 @@
 
 ## Current State
 
-### Latest Session (2025-12-03) - Authentication & Infrastructure
+### Latest Session (2025-12-07) - Tigris Storage Integration
+
+#### Completed
+1. **Tigris Bucket Setup**
+   - Created bucket via `fly storage create`
+   - Fly.io auto-injected S3 credentials as secrets
+   - Bucket name: `homelab-notebook-tigris` (or similar)
+
+2. **Server-Side Tigris Service**
+   - Created `src/lib/server/tigris.ts` with AWS S3 SDK
+   - Presigned URL generation for secure browser uploads
+   - File deletion support
+   - MIME type validation (images, PDFs, docs, text, archives)
+   - 10MB file size limit
+
+3. **API Endpoints**
+   - `POST /api/attachments/upload-url` - Get presigned upload URL
+   - `POST /api/attachments/delete` - Delete file from Tigris
+
+4. **UI Components Updated**
+   - `AttachmentDropZone` - Direct browser-to-Tigris uploads via presigned URLs
+   - `AttachmentList` - Display attachments with download links
+   - All entry edit pages (research, project, reference) - Attachment management
+   - All entry view pages - Display attachments section
+   - New entry pages - "Save entry first" placeholder
+
+5. **Type System Updates**
+   - Added `Attachment` interface (key, publicUrl, filename, size)
+   - Changed `Entry.attachments` from `string[]` to `Attachment[]`
+   - Updated `EntryFormData` to include attachments
+
+6. **PocketBase Schema**
+   - Changed `attachments` field from "file" to "json" type
+   - Stores metadata only; actual files in Tigris
+
+#### Architecture Pattern
+- **Pointer/Reference Pattern**: JSON metadata in PocketBase, files in S3-compatible storage
+- This is the industry-standard approach (AWS uses DynamoDB + S3 similarly)
+- Enables CDN distribution, easy scaling, provider portability
+
+#### Files Created
+- `src/lib/server/tigris.ts` - S3 service for Tigris
+- `src/routes/api/attachments/upload-url/+server.ts` - Upload URL endpoint
+- `src/routes/api/attachments/delete/+server.ts` - Delete endpoint
+
+#### Files Modified
+- `src/lib/types/index.ts` - Added Attachment type
+- `src/lib/services/pocketbase.ts` - JSON attachments instead of file uploads
+- `src/lib/components/ui/AttachmentDropZone.svelte` - Presigned URL uploads
+- `src/lib/components/ui/AttachmentList.svelte` - Attachment object support
+- All entry view/edit pages - Attachment sections added
+- `.env.example` - Documented Tigris env vars
+- `CICD-SECRETS.md` - Documented Tigris secrets
+
+---
+
+### Previous Session (2025-12-03) - Authentication & Infrastructure
 
 #### Completed
 1. **Authentication Implementation**
@@ -55,22 +111,6 @@
    - Updated .env.local for local development
    - Deleted outdated `.docs/pocketbase-security-setup.md`
    - Cleaned build artifacts with old references
-
-#### Files Created
-- `src/routes/login/+page.svelte` - Login page
-- `src/routes/login/+layout.svelte` - Standalone layout for login
-- `src/hooks.server.ts` - Server-side auth guard
-- `src/app.d.ts` - TypeScript types for locals
-- `src/lib/stores/auth.ts` - Auth state management
-- `.docs/pocketbase-flyio-setup.md` - Collection setup guide
-
-#### Files Modified
-- `src/lib/stores/index.ts` - Export auth store
-- `src/lib/components/layout/Sidebar.svelte` - Added logout button
-- `CLAUDE.md` - Updated infrastructure section
-- `Dockerfile` - Updated default PocketBase URL
-- `.github/workflows/ci.yml` - Updated PocketBase URL
-- `.env.local` - Updated for local dev
 
 ---
 
@@ -128,18 +168,18 @@ open https://proposaltracker-api.fly.dev/_/
 
 ---
 
-## Critical Next Action
+## Current Status
 
-### Configure Tigris Storage (REQUIRED)
+**Tigris Storage: DEPLOYED - TESTING IN PROGRESS**
 
-File attachments are currently stored on ephemeral Fly.io VM storage. They will be **lost on redeploy**.
+Deployment completed via CI/CD. User is testing attachment upload functionality on production.
 
-**Before uploading any attachments:**
-1. Create Tigris bucket: `fly storage create`
-2. Configure PocketBase S3 settings in admin UI
-3. Set Fly secrets for S3 credentials
-
-See `.docs/deployment-strategy-updated.md` lines 224-282 for details.
+### Test Checklist
+- [ ] Edit existing entry
+- [ ] Upload small file via drop zone
+- [ ] Save changes
+- [ ] Verify attachment displays on view page
+- [ ] Test download link works
 
 ---
 

@@ -101,6 +101,15 @@ export async function getPresignedUploadUrl(
 	const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn });
 	const publicUrl = getPublicUrl(key);
 
+	// Debug logging
+	console.log('[tigris] Generated presigned URL for:', {
+		bucket: BUCKET_NAME,
+		key,
+		contentType,
+		endpoint: AWS_ENDPOINT_URL_S3,
+		urlHost: new URL(uploadUrl).host
+	});
+
 	return { uploadUrl, key, publicUrl };
 }
 
