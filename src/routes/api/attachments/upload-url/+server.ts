@@ -44,6 +44,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	// Validate file type
 	if (!isAllowedFileType(contentType)) {
+		console.error(`[upload-url] File type rejected: ${contentType} for file: ${filename}`);
 		throw error(400, `File type not allowed: ${contentType}`);
 	}
 

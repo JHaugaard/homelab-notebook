@@ -163,7 +163,9 @@ export function isAllowedFileType(contentType: string): boolean {
 		'application/xml',
 		// Archives
 		'application/zip',
-		'application/gzip'
+		'application/gzip',
+		// Generic binary (fallback when browser can't determine MIME type)
+		'application/octet-stream'
 	];
 	return allowedTypes.includes(contentType);
 }
