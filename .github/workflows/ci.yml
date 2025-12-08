@@ -17,6 +17,7 @@ jobs:
     env:
       # CI uses the external URL since it can't access Fly's internal network
       PUBLIC_POCKETBASE_URL: https://proposaltracker-api.fly.dev
+      PUBLIC_POCKETBASE_PUBLIC_URL: https://proposaltracker-api.fly.dev
 
     steps:
       - name: Checkout code
