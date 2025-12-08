@@ -1,13 +1,34 @@
 import PocketBase from 'pocketbase';
 import { browser } from '$app/environment';
-import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
+import { PUBLIC_POCKETBASE_URL, PUBLIC_POCKETBASE_PUBLIC_URL } from '$env/static/public';
 import type { Entry, Project, Tag, EntryFormData, ProjectFormData, TagFormData, Attachment } from '$lib/types';
 
 // Use internal URL for server-side, public URL for browser
 // The internal URL (http://...internal:8080) only works within Fly's network
 // Browser requests must use the public HTTPS URL
-const POCKETBASE_PUBLIC_URL = 'https://proposaltracker-api.fly.dev';
-const pocketbaseUrl = browser ? POCKETBASE_PUBLIC_URL : PUBLIC_POCKETBASE_URL;
+const pocketbaseUrl = browser ? PUBLIC_POCKETBASE_PUBLIC_URL : PUBLIC_POCKETBASE_URL;
+
+/**
+ * Escape a string value for use in PocketBase filter expressions
+ * Prevents filter injection attacks by escaping quotes and backslashes
+ */
+function escapeFilterValue(value: string): string {
+	return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+/**
+ * Validate that a value matches expected PocketBase ID format (15 alphanumeric chars)
+ */
+function isValidPocketBaseId(id: string): boolean {
+	return /^[a-zA-Z0-9]{15}$/.test(id);
+}
+
+/**
+ * Validate that a mode value is one of the allowed modes
+ */
+function isValidMode(mode: string): mode is 'research' | 'project' | 'reference' {
+	return ['research', 'project', 'reference'].includes(mode);
+}
 
 // Initialize PocketBase client
 export const pb = new PocketBase(pocketbaseUrl);
@@ -49,6 +70,10 @@ export const entryService = {
 	},
 
 	async getByMode(mode: string): Promise<Entry[]> {
+		// Validate mode to prevent filter injection
+		if (!isValidMode(mode)) {
+			throw new Error(`Invalid mode: ${mode}`);
+		}
 		return await pb.collection(collections.entries).getFullList<Entry>({
 			filter: `mode = "${mode}" && archived = false`,
 			sort: '-created',
@@ -57,6 +82,10 @@ export const entryService = {
 	},
 
 	async getByProject(projectId: string): Promise<Entry[]> {
+		// Validate projectId format to prevent filter injection
+		if (!isValidPocketBaseId(projectId)) {
+			throw new Error(`Invalid project ID format: ${projectId}`);
+		}
 		return await pb.collection(collections.entries).getFullList<Entry>({
 			filter: `project = "${projectId}" && archived = false`,
 			sort: '-created',
@@ -186,8 +215,10 @@ export const tagService = {
 
 	async getByName(name: string): Promise<Tag | null> {
 		try {
+			// Escape the name to prevent filter injection
+			const escapedName = escapeFilterValue(name.toLowerCase());
 			const records = await pb.collection(collections.tags).getList<Tag>(1, 1, {
-				filter: `name = "${name.toLowerCase()}"`
+				filter: `name = "${escapedName}"`
 			});
 			return records.items[0] || null;
 		} catch {
@@ -221,6 +252,10 @@ export const tagService = {
 	},
 
 	async merge(sourceId: string, targetId: string): Promise<void> {
+		// Validate IDs to prevent filter injection
+		if (!isValidPocketBaseId(sourceId) || !isValidPocketBaseId(targetId)) {
+			throw new Error('Invalid tag ID format');
+		}
 		// Get all entries with source tag
 		const entries = await pb.collection(collections.entries).getFullList<Entry>({
 			filter: `tags ~ "${sourceId}"`

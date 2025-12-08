@@ -42,6 +42,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		throw error(400, 'Missing required fields: entryId, filename, contentType, size');
 	}
 
+	// Validate entryId format (PocketBase IDs are 15 alphanumeric chars)
+	if (!/^[a-zA-Z0-9]{15}$/.test(entryId)) {
+		throw error(400, 'Invalid entry ID format');
+	}
+
+	// Verify user owns this entry by attempting to fetch it
+	// PocketBase will throw if the user doesn't have access
+	try {
+		await locals.pb.collection('entries').getOne(entryId);
+	} catch {
+		throw error(403, 'You do not have permission to modify this entry');
+	}
+
 	// Validate file type
 	if (!isAllowedFileType(contentType)) {
 		console.error(`[upload-url] File type rejected: ${contentType} for file: ${filename}`);

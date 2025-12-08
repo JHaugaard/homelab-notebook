@@ -40,10 +40,33 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const response = await resolve(event);
 
-	// Set auth cookie on response
+	// Set auth cookie on response with httpOnly for security
+	// httpOnly prevents JavaScript access, protecting against XSS token theft
 	response.headers.set(
 		'set-cookie',
-		event.locals.pb.authStore.exportToCookie({ httpOnly: false, secure: true, sameSite: 'Lax' })
+		event.locals.pb.authStore.exportToCookie({ httpOnly: true, secure: true, sameSite: 'Lax' })
+	);
+
+	// Add security headers
+	response.headers.set('X-Frame-Options', 'DENY');
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+	// Content Security Policy - restrict resource loading
+	response.headers.set(
+		'Content-Security-Policy',
+		[
+			"default-src 'self'",
+			"script-src 'self' 'unsafe-inline'", // unsafe-inline needed for Svelte
+			"style-src 'self' 'unsafe-inline'", // unsafe-inline needed for Tailwind
+			"img-src 'self' data: https://*.tigris.dev https://proposaltracker-api.fly.dev",
+			"font-src 'self'",
+			"connect-src 'self' https://proposaltracker-api.fly.dev https://*.tigris.dev",
+			"frame-ancestors 'none'",
+			"base-uri 'self'",
+			"form-action 'self'"
+		].join('; ')
 	);
 
 	return response;

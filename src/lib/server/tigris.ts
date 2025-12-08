@@ -26,6 +26,7 @@ const AWS_REGION = env.AWS_REGION || 'auto';
 const BUCKET_NAME = env.BUCKET_NAME || 'homelab-notebook-files';
 
 // Initialize S3 client for Tigris
+// Note: We disable request checksums because browsers can't compute them for presigned URL uploads
 const s3Client = new S3Client({
 	region: AWS_REGION || 'auto',
 	endpoint: AWS_ENDPOINT_URL_S3,
@@ -33,7 +34,10 @@ const s3Client = new S3Client({
 		accessKeyId: AWS_ACCESS_KEY_ID,
 		secretAccessKey: AWS_SECRET_ACCESS_KEY
 	},
-	forcePathStyle: false // Use virtual-hosted-style URLs (bucket.endpoint)
+	forcePathStyle: false, // Use virtual-hosted-style URLs (bucket.endpoint)
+	// Disable flexible checksums - browsers can't provide them for presigned uploads
+	requestChecksumCalculation: 'WHEN_REQUIRED',
+	responseChecksumValidation: 'WHEN_REQUIRED'
 });
 
 // Export bucket name for URL construction
@@ -98,17 +102,9 @@ export async function getPresignedUploadUrl(
 		ContentType: contentType
 	});
 
+	// Generate presigned URL for direct browser upload
 	const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn });
 	const publicUrl = getPublicUrl(key);
-
-	// Debug logging
-	console.log('[tigris] Generated presigned URL for:', {
-		bucket: BUCKET_NAME,
-		key,
-		contentType,
-		endpoint: AWS_ENDPOINT_URL_S3,
-		urlHost: new URL(uploadUrl).host
-	});
 
 	return { uploadUrl, key, publicUrl };
 }

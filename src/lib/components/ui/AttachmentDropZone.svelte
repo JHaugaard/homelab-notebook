@@ -154,11 +154,11 @@
 		uploadedFiles = uploadedFiles.filter((_, i) => i !== index);
 		onFilesChange?.(uploadedFiles);
 
-		// Optionally delete from storage (fire and forget)
+		// Delete from storage (fire and forget)
 		fetch('/api/attachments/delete', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ key: file.key })
+			body: JSON.stringify({ key: file.key, entryId })
 		}).catch(console.error);
 	}
 

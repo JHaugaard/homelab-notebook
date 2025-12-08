@@ -6,7 +6,8 @@
  *
  * Request body:
  * {
- *   key: string  // Storage key of the file to delete
+ *   key: string,      // Storage key of the file to delete
+ *   entryId: string   // ID of the entry this attachment belongs to (for ownership verification)
  * }
  *
  * Response:
@@ -24,16 +25,36 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 
 	const body = await request.json();
-	const { key } = body;
+	const { key, entryId } = body;
 
 	// Validate required fields
-	if (!key) {
-		throw error(400, 'Missing required field: key');
+	if (!key || !entryId) {
+		throw error(400, 'Missing required fields: key, entryId');
 	}
 
-	// Basic security: ensure key starts with 'entries/'
+	// Validate key format: must start with 'entries/'
 	if (!key.startsWith('entries/')) {
-		throw error(400, 'Invalid storage key');
+		throw error(400, 'Invalid storage key format');
+	}
+
+	// Validate entryId format (PocketBase IDs are 15 alphanumeric chars)
+	if (!/^[a-zA-Z0-9]{15}$/.test(entryId)) {
+		throw error(400, 'Invalid entry ID format');
+	}
+
+	// Security: Verify the key belongs to the specified entry
+	// Key format is: entries/{entryId}/{timestamp}-{filename}
+	const keyParts = key.split('/');
+	if (keyParts.length < 3 || keyParts[1] !== entryId) {
+		throw error(403, 'Storage key does not match the specified entry');
+	}
+
+	// Verify user owns this entry by attempting to fetch it
+	// PocketBase will throw if the user doesn't have access
+	try {
+		await locals.pb.collection('entries').getOne(entryId);
+	} catch {
+		throw error(403, 'You do not have permission to modify this entry');
 	}
 
 	try {

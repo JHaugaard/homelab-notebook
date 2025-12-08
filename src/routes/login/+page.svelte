@@ -1,34 +1,11 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { pb } from '$lib/services/pocketbase';
+	import { enhance } from '$app/forms';
 	import { Button, Input } from '$lib/components/ui';
 	import { BookOpen } from 'lucide-svelte';
 
-	let email = $state('');
-	let password = $state('');
-	let error = $state('');
+	let { form } = $props();
+
 	let loading = $state(false);
-
-	async function handleLogin(e: Event) {
-		e.preventDefault();
-		error = '';
-		loading = true;
-
-		try {
-			await pb.collection('users').authWithPassword(email, password);
-
-			// Set the auth cookie so the server can read it on subsequent requests
-			document.cookie = pb.authStore.exportToCookie({ httpOnly: false, secure: true, sameSite: 'Lax' });
-
-			// Use window.location for a full page reload to ensure server reads the new cookie
-			window.location.href = '/';
-		} catch (err) {
-			console.error('Login failed:', err);
-			error = 'Invalid email or password';
-		} finally {
-			loading = false;
-		}
-	}
 </script>
 
 <svelte:head>
@@ -48,10 +25,20 @@
 
 		<!-- Login Form -->
 		<div class="bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] p-6 shadow-sm">
-			<form onsubmit={handleLogin} class="space-y-4">
-				{#if error}
+			<form
+				method="POST"
+				use:enhance={() => {
+					loading = true;
+					return async ({ update }) => {
+						loading = false;
+						await update();
+					};
+				}}
+				class="space-y-4"
+			>
+				{#if form?.error}
 					<div class="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-						{error}
+						{form.error}
 					</div>
 				{/if}
 
@@ -61,8 +48,8 @@
 					</label>
 					<Input
 						id="email"
+						name="email"
 						type="email"
-						bind:value={email}
 						placeholder="you@example.com"
 						required
 						disabled={loading}
@@ -75,8 +62,8 @@
 					</label>
 					<Input
 						id="password"
+						name="password"
 						type="password"
-						bind:value={password}
 						placeholder="Enter your password"
 						required
 						disabled={loading}

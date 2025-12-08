@@ -1,116 +1,67 @@
 # Session Context - Homelab Notebook
 
 **Last Updated:** 2025-12-07
-**Session Purpose:** Tigris Storage Integration
+**Session Purpose:** Security Audit & Remediation - COMPLETE
 
 ---
 
-## Workflow Progress
+## Current Session Summary
 
-| Phase | Status | Notes |
-|-------|--------|-------|
-| Project Brief v2 | COMPLETE | .docs/homelab-notebook-brief-v1.md |
-| UI/UX Redesign | COMPLETE | .docs/ui-ux-redesign-v2.md |
-| Migration Phase 1-6 | COMPLETE | Core structure, features, polish |
-| App Init Fix | COMPLETE | Fixed SSR hydration blocking issue |
-| UI Refresh | COMPLETE | Notion-inspired sidebar layout with mobile support |
-| Deployment Strategy | COMPLETE | .docs/deployment-strategy-updated.md |
-| Dependency Fix | COMPLETE | Resolved vite version conflict |
-| File Attachments | COMPLETE | Components ready, PocketBase field added |
-| Search Relocation | COMPLETE | Moved to Header center |
-| Carta Editor | COMPLETE | Merged to main |
-| Fly.io Deployment | COMPLETE | Live at homelab-notebook.fly.dev |
-| CI/CD Pipeline | COMPLETE | GitHub Actions → Fly.io auto-deploy |
-| Type Error Fixes | COMPLETE | All TypeScript/Svelte errors resolved |
-| **Authentication** | **COMPLETE** | Login page, server-side guards, logout |
-| **PocketBase Migration** | **COMPLETE** | Collections on Fly.io PocketBase |
-| **Infrastructure Cleanup** | **COMPLETE** | Removed VPS references |
-| **Tigris Storage** | **COMPLETE** | Presigned URL uploads, JSON metadata in PocketBase |
+### Security Audit Results
+Conducted comprehensive security audit using Zen MCP `secaudit` tool. Identified and remediated **9 vulnerabilities**.
 
-**Mode:** DELIVERY (practical utility focus)
+### Vulnerabilities Fixed
 
----
+| # | Severity | Issue | Fix |
+|---|----------|-------|-----|
+| 1 | HIGH | XSS via unsanitized markdown | Added DOMPurify in `src/lib/utils/markdown.ts` |
+| 2 | MEDIUM | httpOnly:false on auth cookie | Changed to `httpOnly: true` in hooks.server.ts |
+| 3 | MEDIUM | Missing security headers | Added CSP, X-Frame-Options, etc. in hooks.server.ts |
+| 4 | MEDIUM | PocketBase filter injection | Added input validation/escaping in pocketbase.ts |
+| 5 | MEDIUM | IDOR in file deletion | Added ownership verification in delete endpoint |
+| 6 | MEDIUM | IDOR in upload URL | Added ownership verification in upload endpoint |
+| 7 | LOW | cookie package vulnerability | Added pnpm override for cookie>=0.7.0 |
+| 8 | LOW | Debug logging in production | Removed presigned URL logging from tigris.ts |
+| 9 | LOW | Hardcoded PocketBase URL | Moved to PUBLIC_POCKETBASE_PUBLIC_URL env var |
 
-## Current State
+### Files Modified
+- `src/lib/utils/markdown.ts` (new) - DOMPurify sanitization
+- `src/lib/utils/index.ts` - Export markdown utility
+- `src/routes/reference/[id]/+page.svelte` - Use shared renderMarkdown
+- `src/routes/research/[id]/+page.svelte` - Use shared renderMarkdown
+- `src/routes/project/[id]/+page.svelte` - Use shared renderMarkdown
+- `src/hooks.server.ts` - httpOnly cookies + security headers
+- `src/routes/login/+page.svelte` - Server action form
+- `src/routes/login/+page.server.ts` (new) - Server-side auth
+- `src/lib/services/pocketbase.ts` - Filter injection prevention
+- `src/routes/api/attachments/delete/+server.ts` - Ownership check
+- `src/routes/api/attachments/upload-url/+server.ts` - Ownership check
+- `src/lib/components/ui/AttachmentDropZone.svelte` - Pass entryId
+- `src/routes/*/[id]/edit/+page.svelte` (3 files) - Pass entryId to delete
+- `src/lib/server/tigris.ts` - Remove debug logging
+- `.env.example` - Document new env var
+- `.env.local` - Add PUBLIC_POCKETBASE_PUBLIC_URL
+- `package.json` - pnpm override for cookie
 
-### Latest Session (2025-12-07) - Tigris Storage Integration
+### New Dependencies
+- `dompurify` - HTML sanitization for markdown
 
-#### Completed
-1. **Tigris Bucket Setup**
-   - Created bucket via `fly storage create`
-   - Fly.io auto-injected S3 credentials as secrets
-   - Bucket name: `homelab-notebook-tigris` (or similar)
-
-2. **Server-Side Tigris Service**
-   - Created `src/lib/server/tigris.ts` with AWS S3 SDK
-   - Presigned URL generation for secure browser uploads
-   - File deletion support
-   - MIME type validation (images, PDFs, docs, text, archives)
-   - 10MB file size limit
-
-3. **API Endpoints**
-   - `POST /api/attachments/upload-url` - Get presigned upload URL
-   - `POST /api/attachments/delete` - Delete file from Tigris
-
-4. **UI Components Updated**
-   - `AttachmentDropZone` - Direct browser-to-Tigris uploads via presigned URLs
-   - `AttachmentList` - Display attachments with download links
-   - All entry edit pages (research, project, reference) - Attachment management
-   - All entry view pages - Display attachments section
-   - New entry pages - "Save entry first" placeholder
-
-5. **Type System Updates**
-   - Added `Attachment` interface (key, publicUrl, filename, size)
-   - Changed `Entry.attachments` from `string[]` to `Attachment[]`
-   - Updated `EntryFormData` to include attachments
-
-6. **PocketBase Schema**
-   - Changed `attachments` field from "file" to "json" type
-   - Stores metadata only; actual files in Tigris
-
-#### Architecture Pattern
-- **Pointer/Reference Pattern**: JSON metadata in PocketBase, files in S3-compatible storage
-- This is the industry-standard approach (AWS uses DynamoDB + S3 similarly)
-- Enables CDN distribution, easy scaling, provider portability
-
-#### Files Created
-- `src/lib/server/tigris.ts` - S3 service for Tigris
-- `src/routes/api/attachments/upload-url/+server.ts` - Upload URL endpoint
-- `src/routes/api/attachments/delete/+server.ts` - Delete endpoint
-
-#### Files Modified
-- `src/lib/types/index.ts` - Added Attachment type
-- `src/lib/services/pocketbase.ts` - JSON attachments instead of file uploads
-- `src/lib/components/ui/AttachmentDropZone.svelte` - Presigned URL uploads
-- `src/lib/components/ui/AttachmentList.svelte` - Attachment object support
-- All entry view/edit pages - Attachment sections added
-- `.env.example` - Documented Tigris env vars
-- `CICD-SECRETS.md` - Documented Tigris secrets
+### Fly.io Deployment
+Secret added:
+```bash
+fly secrets set PUBLIC_POCKETBASE_PUBLIC_URL="https://proposaltracker-api.fly.dev"
+fly deploy
+```
 
 ---
 
-### Previous Session (2025-12-03) - Authentication & Infrastructure
+## Previous Session Summary (2025-12-07)
 
-#### Completed
-1. **Authentication Implementation**
-   - Created `/login` page with email/password form
-   - Added `hooks.server.ts` for server-side auth guards
-   - Created auth store (`src/lib/stores/auth.ts`)
-   - Added logout button to sidebar
-   - All routes now require authentication
-
-2. **PocketBase Migration to Fly.io**
-   - Created `entries`, `projects`, `tags` collections on `proposaltracker-api`
-   - Set API rules (`@request.auth.id != ""`) for all collections
-   - Shared user account works across apps (SSO with proposaltracker)
-
-3. **Infrastructure Cleanup**
-   - Updated CLAUDE.md with correct Fly.io URLs
-   - Fixed Dockerfile default PocketBase URL
-   - Fixed CI workflow PocketBase URL
-   - Updated .env.local for local development
-   - Deleted outdated `.docs/pocketbase-security-setup.md`
-   - Cleaned build artifacts with old references
+### Tigris Storage Integration - COMPLETE
+- Presigned URL uploads working
+- JSON metadata in PocketBase, files in Tigris S3
+- Fixed credential mismatch issue
+- All upload/download functionality verified
 
 ---
 
@@ -119,77 +70,32 @@
 ### Production (Fly.io)
 - **App URL:** https://homelab-notebook.fly.dev
 - **Custom Domain:** https://homelab-notebook.haugaard.app
-- **PocketBase API:** http://proposaltracker-api.internal:8080 (internal)
+- **PocketBase API (internal):** http://proposaltracker-api.internal:8080
+- **PocketBase API (public):** https://proposaltracker-api.fly.dev
 - **PocketBase Admin:** https://proposaltracker-api.fly.dev/_/
-- **Region:** sjc (San Jose)
-- **VM:** shared-cpu-1x, 512MB RAM
-- **Auto-deploy:** On push to `main` via GitHub Actions
 
-### Shared PocketBase Instance
-- `proposaltracker-api` serves multiple apps
-- User accounts shared (SSO)
-- Collections per app: `entries`, `projects`, `tags` (homelab-notebook)
+### Environment Variables (Production)
+- `PUBLIC_POCKETBASE_URL` - Internal PocketBase URL for server-side
+- `PUBLIC_POCKETBASE_PUBLIC_URL` - Public PocketBase URL for browser
+- `AWS_*` / `BUCKET_NAME` - Tigris S3 credentials
 
-### CI/CD (GitHub Actions)
-- **CI Trigger:** Push to `main`/`dev`, PRs to `main`
-- **Deploy Trigger:** After CI succeeds on `main`
-- **Secrets Required:** `FLY_API_TOKEN`
-
-### Local Development
-- **PocketBase:** `http://localhost:8090` (Docker container)
-- **ENV:** `PUBLIC_POCKETBASE_URL=http://localhost:8090` in `.env.local`
+### Security Headers (Production)
+- Content-Security-Policy (CSP)
+- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- Referrer-Policy: strict-origin-when-cross-origin
+- Permissions-Policy (camera, mic, geo disabled)
 
 ---
 
 ## Quick Commands
 
 ```bash
-# Local development
-pnpm dev
-
-# Run checks
-pnpm lint          # ESLint
-pnpm check         # TypeScript/Svelte
-pnpm test          # Vitest
-pnpm build         # Production build
-
-# Deploy (manual - usually auto via CI/CD)
-fly deploy
-
-# Check CI/CD status
-gh run list --limit 5
-
-# View Fly.io logs
-fly logs
-
-# PocketBase admin
-open https://proposaltracker-api.fly.dev/_/
+pnpm dev          # Local development
+pnpm build        # Production build
+pnpm check        # TypeScript/Svelte check
+pnpm lint         # ESLint
+fly logs          # View Fly.io logs
+fly secrets list  # View secrets
+fly deploy        # Deploy to production
 ```
-
----
-
-## Current Status
-
-**Tigris Storage: DEPLOYED - TESTING IN PROGRESS**
-
-Deployment completed via CI/CD. User is testing attachment upload functionality on production.
-
-### Test Checklist
-- [ ] Edit existing entry
-- [ ] Upload small file via drop zone
-- [ ] Save changes
-- [ ] Verify attachment displays on view page
-- [ ] Test download link works
-
----
-
-## Reference Files
-
-- `.github/workflows/ci.yml` - CI pipeline
-- `.github/workflows/deploy.yml` - CD pipeline
-- `CICD-SECRETS.md` - Secrets documentation
-- `.docs/deployment-log.md` - Deployment runbook
-- `.docs/pocketbase-flyio-setup.md` - Collection setup guide
-- `.docs/deployment-strategy-updated.md` - Full deployment strategy
-- `fly.toml` - Fly.io configuration
-- `CLAUDE.md` - Project documentation

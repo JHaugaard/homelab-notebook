@@ -1,5 +1,6 @@
 // Re-export all utilities
 export * from './format';
+export * from './markdown';
 
 /**
  * Debounce a function call

@@ -175,7 +175,7 @@
 								fetch('/api/attachments/delete', {
 									method: 'POST',
 									headers: { 'Content-Type': 'application/json' },
-									body: JSON.stringify({ key: attachment.key })
+									body: JSON.stringify({ key: attachment.key, entryId: id })
 								}).catch(console.error);
 							}}
 						/>

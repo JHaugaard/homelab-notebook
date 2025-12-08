@@ -9,7 +9,7 @@
 	import { entries, toasts } from '$lib/stores';
 	import { entryService } from '$lib/services/pocketbase';
 	import type { Entry } from '$lib/types';
-	import { formatDate, formatTime } from '$lib/utils';
+	import { formatDate, formatTime, renderMarkdown } from '$lib/utils';
 
 	let entry = $state<Entry | null>(null);
 	let loading = $state(true);
@@ -49,32 +49,6 @@
 		}
 	}
 
-	function renderMarkdown(text: string): string {
-		if (!text) return '';
-
-		return text
-			.replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
-			.replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-4 mb-2">$1</h2>')
-			.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>')
-			.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-			.replace(/\*(.*?)\*/gim, '<em>$1</em>')
-			.replace(
-				/```(\w*)\n([\s\S]*?)```/gim,
-				'<pre class="bg-[var(--color-surface-hover)] p-3 rounded-md my-2 overflow-x-auto"><code>$2</code></pre>'
-			)
-			.replace(
-				/`(.*?)`/gim,
-				'<code class="bg-[var(--color-surface-hover)] px-1.5 py-0.5 rounded text-sm">$1</code>'
-			)
-			.replace(/^\s*[-*]\s+(.*$)/gim, '<li class="ml-4">$1</li>')
-			.replace(/\[x\]/gim, '<input type="checkbox" checked disabled class="mr-2">')
-			.replace(/\[\s?\]/gim, '<input type="checkbox" disabled class="mr-2">')
-			.replace(
-				/\[([^\]]+)\]\(([^)]+)\)/gim,
-				'<a href="$2" class="text-[var(--color-blue)] underline" target="_blank" rel="noopener">$1</a>'
-			)
-			.replace(/\n/gim, '<br>');
-	}
 </script>
 
 <svelte:head>
