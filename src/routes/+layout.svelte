@@ -1,33 +1,33 @@
 <script lang="ts">
 	import '../app.css';
 	import type { Snippet } from 'svelte';
-	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { AppShell, Toast } from '$lib/components/layout';
-	import { entries, projects, tags, showGlobalSearch, showQuickCapture, showNewProjectModal, toasts } from '$lib/stores';
+	import { entries, projects, tags, showGlobalSearch, showQuickCapture, showNewProjectModal } from '$lib/stores';
 	import { isMac } from '$lib/utils';
 	import GlobalSearch from '$lib/components/nav/GlobalSearch.svelte';
 	import QuickCaptureModal from '$lib/components/features/QuickCaptureModal.svelte';
 	import NewProjectModal from '$lib/components/features/NewProjectModal.svelte';
+	import type { LayoutData } from './$types';
 
 	interface Props {
 		children: Snippet;
+		data: LayoutData;
 	}
 
-	let { children }: Props = $props();
+	let { children, data }: Props = $props();
 
-	let error = $state<string | null>(null);
-
-	onMount(() => {
-		// Load data in the background - don't block rendering
-		Promise.all([
-			entries.load().catch((e) => console.error('Failed to load entries:', e)),
-			projects.load().catch((e) => console.error('Failed to load projects:', e)),
-			tags.load().catch((e) => console.error('Failed to load tags:', e))
-		]).catch((e) => {
-			console.error('Data loading failed:', e);
-			toasts.warning('Could not connect to database. Some features may be unavailable.');
-		});
+	// Initialize stores with server-loaded data
+	$effect(() => {
+		if (data.entries) {
+			entries.set(data.entries);
+		}
+		if (data.projects) {
+			projects.set(data.projects);
+		}
+		if (data.tags) {
+			tags.set(data.tags);
+		}
 	});
 
 	// Global keyboard shortcuts

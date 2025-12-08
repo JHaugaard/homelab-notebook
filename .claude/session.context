@@ -1,11 +1,34 @@
 # Session Context - Homelab Notebook
 
-**Last Updated:** 2025-12-07
-**Session Purpose:** Security Audit & Remediation - COMPLETE
+**Last Updated:** 2025-12-08
+**Session Purpose:** Security Audit Deployment Fixes - COMPLETE
 
 ---
 
 ## Current Session Summary
+
+### Post-Deployment Fixes (2025-12-08)
+
+After deploying the security audit fixes, discovered issues with the production app not loading data. Root cause: SvelteKit `$env/static/public` variables are baked in at **build time**, not runtime.
+
+#### Issues Fixed
+
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| CI build failing | Missing `PUBLIC_POCKETBASE_PUBLIC_URL` env var | Added to `.github/workflows/ci.yml` |
+| App showing "No entries" in production | Dockerfile missing build-time env var | Added `PUBLIC_POCKETBASE_PUBLIC_URL` to Dockerfile |
+| CSP blocking font | Security headers too restrictive | (Minor - noted for future fix) |
+
+#### Files Modified This Session
+- `.github/workflows/ci.yml` - Added `PUBLIC_POCKETBASE_PUBLIC_URL` env var
+- `Dockerfile` - Added `PUBLIC_POCKETBASE_PUBLIC_URL` as build-time ARG/ENV
+
+#### Key Learning
+SvelteKit's `$env/static/public` imports are resolved at **build time**. Runtime environment variables (like Fly.io secrets) don't override them. The Dockerfile must include all PUBLIC_ vars as build args.
+
+---
+
+## Previous Session Summary (2025-12-07)
 
 ### Security Audit Results
 Conducted comprehensive security audit using Zen MCP `secaudit` tool. Identified and remediated **9 vulnerabilities**.
@@ -99,3 +122,11 @@ fly logs          # View Fly.io logs
 fly secrets list  # View secrets
 fly deploy        # Deploy to production
 ```
+
+---
+
+## Session Status
+
+**Completed:** 2025-12-08 ~02:30 UTC
+**MCP Servers cleaned:** Zen (disabled)
+**Tool count:** 6 (clean slate)
