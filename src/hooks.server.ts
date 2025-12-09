@@ -8,7 +8,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// Load auth from cookie
 	const cookie = event.request.headers.get('cookie') || '';
+	const hasPbAuth = cookie.includes('pb_auth');
 	event.locals.pb.authStore.loadFromCookie(cookie);
+
+	// Debug logging (only on main page loads, not static assets)
+	if (!event.url.pathname.startsWith('/_app') && !event.url.pathname.startsWith('/favicon')) {
+		console.log('[Hooks Debug] Path:', event.url.pathname);
+		console.log('[Hooks Debug] PocketBase URL:', PUBLIC_POCKETBASE_URL);
+		console.log('[Hooks Debug] Has pb_auth cookie:', hasPbAuth);
+		console.log('[Hooks Debug] Auth store valid:', event.locals.pb.authStore.isValid);
+	}
 
 	// Check if auth token is valid (without making a network call on every request)
 	// The token itself contains expiry info that PocketBase checks

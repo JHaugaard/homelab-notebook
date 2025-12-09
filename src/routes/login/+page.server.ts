@@ -9,6 +9,9 @@ export const actions: Actions = {
 		const email = data.get('email') as string;
 		const password = data.get('password') as string;
 
+		console.log('[Login Debug] Attempting login for:', email);
+		console.log('[Login Debug] PocketBase URL:', PUBLIC_POCKETBASE_URL);
+
 		if (!email || !password) {
 			return fail(400, { error: 'Email and password are required' });
 		}
@@ -16,17 +19,29 @@ export const actions: Actions = {
 		const pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 
 		try {
-			await pb.collection('users').authWithPassword(email, password);
+			// Test connection first
+			console.log('[Login Debug] Testing PocketBase connection...');
+			const health = await pb.health.check();
+			console.log('[Login Debug] Health check passed:', health);
+
+			console.log('[Login Debug] Authenticating...');
+			const authResult = await pb.collection('users').authWithPassword(email, password);
+			console.log('[Login Debug] Auth successful for user:', authResult.record.email);
 
 			// Set httpOnly cookie via server - this is secure and can't be stolen via XSS
-			cookies.set('pb_auth', pb.authStore.exportToCookie(), {
+			const cookieValue = pb.authStore.exportToCookie();
+			console.log('[Login Debug] Cookie length:', cookieValue.length);
+			cookies.set('pb_auth', cookieValue, {
 				path: '/',
 				httpOnly: true,
 				secure: true,
 				sameSite: 'lax',
 				maxAge: 60 * 60 * 24 * 7 // 1 week
 			});
-		} catch {
+			console.log('[Login Debug] Cookie set successfully');
+		} catch (error) {
+			console.error('[Login Debug] Login failed:', error);
+			console.error('[Login Debug] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
 			return fail(401, { error: 'Invalid email or password' });
 		}
 
