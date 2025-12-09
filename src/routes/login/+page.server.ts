@@ -28,10 +28,16 @@ export const actions: Actions = {
 			const authResult = await pb.collection('users').authWithPassword(email, password);
 			console.log('[Login Debug] Auth successful for user:', authResult.record.email);
 
-			// Set httpOnly cookie via server - this is secure and can't be stolen via XSS
-			const cookieValue = pb.authStore.exportToCookie();
-			console.log('[Login Debug] Cookie length:', cookieValue.length);
-			cookies.set('pb_auth', cookieValue, {
+			// Extract just the token value from the auth store
+			// exportToCookie() returns the full cookie string "pb_auth=...; Path=/; ..."
+			// We need just the encoded value for cookies.set()
+			const token = pb.authStore.token;
+			const model = pb.authStore.record;
+			const cookiePayload = JSON.stringify({ token, record: model });
+			const encodedPayload = encodeURIComponent(cookiePayload);
+
+			console.log('[Login Debug] Setting auth cookie');
+			cookies.set('pb_auth', encodedPayload, {
 				path: '/',
 				httpOnly: true,
 				secure: true,
